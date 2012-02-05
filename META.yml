@@ -1,0 +1,66 @@
+---
+abstract: 'A Perl lexer and parser for Graphviz dot files'
+author:
+  - 'Ron Savage <ron@savage.net.au>'
+build_requires:
+  Test::More: 0.94
+  Test::Pod: 1.44
+configure_requires:
+  Module::Build: 0.38
+dynamic_config: 1
+generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.113640'
+license: artistic
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: GraphViz2-Marpa
+provides:
+  GraphViz2::Marpa:
+    file: lib/GraphViz2/Marpa.pm
+    version: 1.00
+  GraphViz2::Marpa::Lexer:
+    file: lib/GraphViz2/Marpa/Lexer.pm
+    version: 1.00
+  GraphViz2::Marpa::Lexer::DFA:
+    file: lib/GraphViz2/Marpa/Lexer/DFA.pm
+    version: 1.00
+  GraphViz2::Marpa::Parser:
+    file: lib/GraphViz2/Marpa/Parser.pm
+    version: 1.00
+  GraphViz2::Marpa::Renderer::GraphViz2:
+    file: lib/GraphViz2/Marpa/Renderer/GraphViz2.pm
+    version: 1.00
+  GraphViz2::Marpa::Utils:
+    file: lib/GraphViz2/Marpa/Utils.pm
+    version: 1.00
+requires:
+  Algorithm::Diff: 1.1902
+  Data::Section::Simple: 0.02
+  Date::Format: 2.24
+  File::Slurp: 9999.19
+  File::Spec: 3.33
+  File::Temp: 0.22
+  Getopt::Long: 2.38
+  GraphViz2: 1.09
+  GraphViz2::Parse::Marpa: 1.12
+  HTML::Entities::Interpolate: 1.04
+  Hash::FieldHash: 0.1
+  IO::File: 1.14
+  List::Compare: 0.37
+  Log::Handler: 0.71
+  Marpa::XS: 0.026
+  Module::UseFrom: 0.02
+  Perl6::Slurp: 0.03
+  Pod::Usage: 1.36
+  Set::Array: 0.23
+  Set::FA::Element: 1.08
+  Text::CSV_XS: 0.8
+  Text::Xslate: 1.4001
+  Try::Tiny: 0.09
+  feature: 1
+  perl: v5.10.0
+  strict: 1.03
+  warnings: 1.03
+resources:
+  license: http://opensource.org/licenses/artistic-license.php
+version: 1.00

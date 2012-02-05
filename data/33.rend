@@ -1,0 +1,22 @@
+digraph graph_33
+{
+	node_33_1
+	[
+		color = "red"
+		fontcolor = "green"
+		label = "<html-style label for node_33_1>"
+	]
+	node_33_2
+	[
+		color = "green"
+		fontcolor = "red"
+		label = "<html-style label for node_33_2>"
+	]
+	node_33_1 -> node_33_2
+	[
+		arrowhead = "crow"
+		arrowtail = "diamond"
+		color = "blue"
+		dir = "both"
+	]
+}

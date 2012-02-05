@@ -1,0 +1,9 @@
+digraph graph_38
+{
+	node_38
+	[
+		color = "red"
+		fontcolor = "green"
+		label = "<html-style label with \n embedded newline>"
+	]
+}

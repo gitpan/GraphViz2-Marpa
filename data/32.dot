@@ -1,0 +1,9 @@
+digraph graph_32
+{
+	node_32
+	[
+		color = red
+		fontcolor = green
+		label = <html-style label with &lt;&gt; embedded angle brackets>
+	]
+}

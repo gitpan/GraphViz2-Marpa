@@ -1,0 +1,9 @@
+digraph graph_31
+{
+	node_31
+	[
+		color = red
+		fontcolor = green
+		label = <html-style label with &lt;br /&gt; embedded 'br'>
+	]
+}
