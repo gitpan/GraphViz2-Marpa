@@ -34,13 +34,12 @@ fieldhash my %maxlevel     => 'maxlevel';
 fieldhash my %minlevel     => 'minlevel';
 fieldhash my %report_items => 'report_items';
 fieldhash my %report_stt   => 'report_stt';
-fieldhash my %result       => 'result';
 fieldhash my %stt_file     => 'stt_file';
 fieldhash my %timeout      => 'timeout';
 fieldhash my %type         => 'type';
 fieldhash my %utils        => 'utils';
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 # --------------------------------------------------
 
@@ -282,7 +281,6 @@ sub _init
 	$$arg{minlevel}     ||= 'error';  # Caller can set.
 	$$arg{report_items} ||= 0;        # Caller can set.
 	$$arg{report_stt}   ||= 0;        # Caller can set.
-	$$arg{result}       = 0;
 	$$arg{stt_file}     ||= ''; # Caller can set.
 	$$arg{timeout}      ||= 10; # Caller can set.
 	$$arg{type}         ||= ''; # Caller can set.
@@ -342,7 +340,8 @@ sub _process
 
 	$self -> log(debug => 'Graph text: ' . $self -> graph_text);
 
-	my($died) = '';
+	my($died)   = '';
+	my($result) = 0; # Default to success.
 
 	try
 	{
@@ -363,7 +362,7 @@ sub _process
 
 		alarm $self -> timeout;
 
-		$self -> result($self -> dfa -> run);
+		$result = $self -> dfa -> run;
 	}
 	catch
 	{
@@ -376,11 +375,12 @@ sub _process
 
 	if ($died)
 	{
+		$result = 1;
+
 		$self -> log(error => $died);
-		$self -> result(1);
 	}
 
-	if ($self -> result == 0)
+	if ($result == 0)
 	{
 		$self -> items -> push(@{$self -> dfa -> items});
 		$self -> report if ($self -> report_items);
@@ -390,11 +390,11 @@ sub _process
 		$self -> generate_lexed_file($file_name) if ($file_name);
 	}
 
-	$self -> log(info => $self -> result ? 'Fail' : 'OK');
+	$self -> log(info => $result ? 'Fail' : 'OK');
 
 	# Return 0 for success and 1 for failure.
 
-	return $self -> result;
+	return $result;
 
 } # End of _process.
 
@@ -698,6 +698,14 @@ The default means the file is not written.
 
 See the distro for data/*.lex.
 
+=item o logger => $aLoggerObject
+
+Specify a logger compatible with L<Log::Handler>, for the lexer to use.
+
+Default: A logger of type L<Log::Handler> which writes to the screen.
+
+To disable logging, just set 'logger' to the empty string (not undef).
+
 =item o maxlevel => $logOption1
 
 This option affects L<Log::Handler>.
@@ -877,11 +885,13 @@ Calls $self -> logger -> $level($s) if ($self -> logger).
 
 =head2 logger([$logger_object])
 
+'logger' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
 Here, the [] indicate an optional parameter.
 
 Get or set the logger object.
 
-To disable logging, just set 'logger' to the empty string, in the call to L</new()>.
+To disable logging, just set 'logger' to the empty string (not undef), in the call to L</new()>.
 
 This logger is passed to L<GraphViz2::Marpa::Lexer::DFA>.
 
@@ -966,6 +976,14 @@ Get or set the timeout for how long to run the DFA.
 The [] indicate an optional parameter.
 
 Get or set the value which determines what type of 'stt_file' is read.
+
+=head2 utils([$aUtilsObject])
+
+Here, the [] indicate an optional parameter.
+
+Get or set the utils object.
+
+Default: A object of type L<GraphViz2::Marpa::Utils>.
 
 =head1 FAQ
 

@@ -18,15 +18,14 @@ fieldhash my %maxlevel     => 'maxlevel';
 fieldhash my %minlevel     => 'minlevel';
 fieldhash my %output_file  => 'output_file';
 fieldhash my %parsed_file  => 'parsed_file';
+fieldhash my %renderer     => 'renderer';
 fieldhash my %report_items => 'report_items';
 fieldhash my %report_stt   => 'report_stt';
-fieldhash my %result       => 'result';
 fieldhash my %stt_file     => 'stt_file';
 fieldhash my %timeout      => 'timeout';
-fieldhash my %tokens       => 'tokens';
 fieldhash my %type         => 'type';
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 # --------------------------------------------------
 
@@ -36,17 +35,16 @@ sub _init
 	$$arg{description}  ||= '';       # Caller can set.
 	$$arg{input_file}   ||= '';       # Caller can set.
 	$$arg{lexed_file}   ||= '';       # Caller can set.
-	$$arg{logger}       ||= undef;    # Caller can set.
+	$$arg{logger}       ||= defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
 	$$arg{maxlevel}     ||= 'notice'; # Caller can set.
 	$$arg{minlevel}     ||= 'error';  # Caller can set.
 	$$arg{output_file}  ||= '';       # Caller can set.
 	$$arg{parsed_file}  ||= '';       # Caller can set.
+	$$arg{renderer}     ||= '';       # Caller can set.
 	$$arg{report_items} ||= 0;        # Caller can set.
 	$$arg{report_stt}   ||= 0;        # Caller can set.
-	$$arg{result}       = 0;
 	$$arg{stt_file}     ||= ''; # Caller can set.
 	$$arg{timeout}      ||= 10; # Caller can set.
-	$$arg{tokens}       = [];
 	$$arg{type}         ||= ''; # Caller can set.
 	$self               = from_hash($self, $arg);
 
@@ -124,6 +122,7 @@ sub run
 			 minlevel     => $self -> minlevel,
 			 output_file  => $self -> output_file,
 			 parsed_file  => $self -> parsed_file,
+			 renderer     => $self -> renderer,
 			 report_items => $self -> report_items,
 			 tokens       => $lexer -> items,
 			) -> run;
@@ -421,13 +420,21 @@ See the distro for data/*.dot.
 
 =item o lexed_file => $aLexedOutputFileName
 
-Specify the name of a CSV file of lexed tokens to write. This file can be input to the parser.
+Specify the name of a CSV file of lexed tokens for the lexer to write. This file can be input to the parser.
 
 Default: ''.
 
 The default means the file is not written.
 
 See the distro for data/*.lex.
+
+=item o logger => $aLoggerObject
+
+Specify a logger compatible with L<Log::Handler>, for the lexer and parser to use.
+
+Default: A logger of type L<Log::Handler> which writes to the screen.
+
+To disable logging, just set 'logger' to the empty string (not undef).
 
 =item o maxlevel => $logOption1
 
@@ -449,11 +456,25 @@ No lower levels are used.
 
 =item o output_file => aRenderedOutputFileName
 
-Specify the name of a file to be passed to the renderer.
+Specify the name of a file for the renderer to write.
 
 Default: ''.
 
 The default means the renderer is not called.
+
+=item o parsed_file => aParsedOutputFileName
+
+Specify the name of a CSV file of parsed tokens for the parser to write. This file can be input to the renderer.
+
+Default: ''.
+
+The default means the file is not written.
+
+=item o renderer => $aRendererObject
+
+Specify a renderer for the parser to use.
+
+Default: undef.
 
 =item o report_items => $Boolean
 
@@ -538,17 +559,19 @@ See also the L</description()> method.
 
 Here, the [] indicate an optional parameter.
 
-Get or set the name of the CSV file of lexed tokens to write. This file can be input to the parser.
+Get or set the name of the CSV file of lexed tokens for the lexer to write. This file can be input to the parser.
 
 =head2 logger([$logger_object])
+
+'logger' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 Here, the [] indicate an optional parameter.
 
 Get or set the logger object.
 
-To disable logging, just set 'logger' to the empty string, in the call to L</new()>.
+To disable logging, just set 'logger' to the empty string (not undef), in the call to L</new()>.
 
-This logger is passed to L<GraphViz2::Marpa::Lexer::DFA>.
+This logger is passed to other modules.
 
 =head2 maxlevel([$string])
 
@@ -582,7 +605,25 @@ See L</Constructor and Initialization> for details on the parameters accepted by
 
 Here, the [] indicate an optional parameter.
 
-Get or set the name of the file to be passed to the renderer.
+Get or set the name of the file for the renderer to write.
+
+=head2 parsed_file([$file_name])
+
+'parsed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
+Here, the [] indicate an optional parameter.
+
+Get or set the name of the file of parsed tokens for the parser to write. This file can be input to the renderer.
+
+=head2 renderer([$renderer_object])
+
+'renderer' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
+Here, the [] indicate an optional parameter.
+
+Get or set the renderer object.
+
+This renderer is passed to L<GraphViz2::Marpa::Parser>.
 
 =head2 report_items([$Boolean])
 
@@ -636,19 +677,24 @@ Get or set the value which determines what type of 'stt_file' is read.
 
 =head1 FAQ
 
+=head2 Does this package support Unicode in the input dot file?
+
+No. Sorry. Not yet.
+
 =head2 How can I switch from Marpa::XS to Marpa::PP?
 
 Install Marpa::PP manually. It is not mentioned in Build.PL or Makefile.PL.
 
 Patch GraphViz2::Marpa::Parser (line 15) from Marpa::XS to Marpa:PP.
 
-Run the tests which ship with this module.
+Then, run the tests which ship with this module. I've tried this, and the tests all worked. You don't need to install the code to test it. Just use:
 
-I've tried this, and the tests all worked.
+	shell> cd GraphViz2-Marpa-1.00/
+	shell> prove -Ilib -v t
 
 =head2 If I input x.dot and output x.rend, should these 2 files be identical?
 
-Yes. Or at least in the sense that running dot with them as input will produce the same output files.
+Yes - at least in the sense that running dot with them as input will produce the same output files. This is using the default renderer, of course.
 
 Since comments in *.dot files are discarded, they can never be in the output files (*.lex, *.parse and *.rend).
 

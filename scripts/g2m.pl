@@ -89,6 +89,10 @@ The -description option takes precedence over the -input_file option.
 
 Default: ''.
 
+=item -help
+
+Print help and exit.
+
 =item -input_file aDotInputFileName
 
 Read the DOT-style graph definition from a file.
@@ -101,13 +105,9 @@ Default: ''.
 
 See the distro for data/*.dot.
 
-=item -help
-
-Print help and exit.
-
 =item -lexed_file aLexedOutputFileName
 
-Specify the name of a CSV file of lexed tokens to write. This file can be input to the parser.
+Specify the name of a CSV file of lexed tokens for the lexer to write. This file can be input to the parser.
 
 Default: ''.
 
@@ -133,7 +133,7 @@ No lower levels are used.
 
 =item -output_file aRenderedOutputFileName
 
-Specify the name of a file to be passed to the renderer.
+Specify the name of a file for the renderer to write.
 
 Default: ''.
 
@@ -141,7 +141,7 @@ The default means the file is not written.
 
 =item -parsed_file aParsedOutputFileName
 
-Specify the name of a CSV file of parsed tokens to write. This file can be input to the default renderer.
+Specify the name of a CSV file of parsed tokens for the parser to write. This file can be input to the renderer.
 
 Default: ''.
 

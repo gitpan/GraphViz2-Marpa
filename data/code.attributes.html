@@ -4,7 +4,7 @@
 </head>
 <body>
 
-<h1 align="center">Code and Command Line Attributes for GraphViz2::Marpa V 1.00</h1>
+<h1 align="center">Code and Command Line Attributes for GraphViz2::Marpa V 1.01</h1>
 
 <p>This documents the list of command line options and object attributes shared by the modules in this package.</p>
 
@@ -147,7 +147,7 @@
 <td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Internal</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">Output from the lexer</div></td>
 </tr>
 <tr>
 <td><div style="border: thin solid; margin: 0; padding: 0">lexed_file</div></td>
@@ -161,7 +161,7 @@
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Output from the lexer</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">Output from the lexer and parser</div></td>
 </tr>
 <tr>
 <td><div style="border: thin solid; margin: 0; padding: 0">logger</div></td>
@@ -221,7 +221,7 @@
 </tr>
 <tr>
 <td><div style="border: thin solid; margin: 0; padding: 0">output_string</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">DOT string</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
@@ -249,7 +249,7 @@
 </tr>
 <tr>
 <td><div style="border: thin solid; margin: 0; padding: 0">renderer</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">A renderer</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
@@ -259,7 +259,7 @@
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">The renderer object</div></td>
 </tr>
 <tr>
 <td><div style="border: thin solid; margin: 0; padding: 0">report_items</div></td>
@@ -286,20 +286,6 @@
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-</tr>
-<tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">result</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Boolean</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 </tr>
@@ -346,6 +332,34 @@
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 </tr>
 <tr>
+<td><div style="border: thin solid; margin: 0; padding: 0">subgraph</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">Stack</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">An object of type Set::Array</div></td>
+</tr>
+<tr>
+<td><div style="border: thin solid; margin: 0; padding: 0">subgraph_count</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">Integer</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+</tr>
+<tr>
 <td><div style="border: thin solid; margin: 0; padding: 0">timeout</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">Integer</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
@@ -370,7 +384,7 @@
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">Input to the parser. Input to the renderer</div></td>
 </tr>
 <tr>
@@ -400,6 +414,20 @@
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">An object of type GraphViz2::Marpa::Utils</div></td>
+</tr>
+<tr>
+<td><div style="border: thin solid; margin: 0; padding: 0">verbose</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">Boolean</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 </tr>
 <tr>
 <td><div style="border: thin solid; margin: 0; padding: 0">Name</div></td>

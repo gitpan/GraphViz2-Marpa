@@ -23,7 +23,7 @@ fieldhash my %subgraph_count => 'subgraph_count';
 fieldhash my %verbose        => 'verbose';
 
 our $myself; # Is a copy of $self for functions called by Set::FA::Element.
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 # --------------------------------------------------
 
@@ -394,7 +394,7 @@ sub _init
 	$$arg{graph_text}     = $$arg{graph_text} || die 'Error: No value supplied for graph_text';
 	$$arg{item_count}     = 0;
 	$$arg{items}          = Set::Array -> new;
-	$$arg{logger}         ||= undef; # Caller can set.
+	$$arg{logger}         ||= defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
 	$$arg{report_stt}     ||= 0;     # Caller can set.
 	$$arg{start}          ||= $$arg{start} || die 'Error: No value supplied for start';
 	$$arg{state}          ||= $$arg{state} || die 'Error: No value supplied for state';
@@ -953,8 +953,6 @@ Calls $self -> logger -> $level($s) if ($self -> logger).
 Here, the [] indicate an optional parameter.
 
 Get or set the logger object.
-
-To disable logging, just set logger to the empty string.
 
 =head2 new()
 

@@ -22,7 +22,7 @@ fieldhash my %parsed_file   => 'parsed_file';
 fieldhash my %tokens        => 'tokens';
 fieldhash my %utils         => 'utils';
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 # --------------------------------------------------
 
@@ -101,7 +101,7 @@ sub _init
 {
 	my($self, $arg)      = @_;
 	$$arg{items}         = Set::Array -> new;
-	$$arg{logger}        ||= undef;    # Caller can set.
+	$$arg{logger}        ||= defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
 	$$arg{maxlevel}      ||= 'notice'; # Caller can set.
 	$$arg{minlevel}      ||= 'error';  # Caller can set.
 	$$arg{output_file}   ||= '';       # Caller can set.
@@ -356,6 +356,8 @@ To disable logging, just set logger to the empty string.
 
 Default: An object of type L<Log::Handler>.
 
+To disable logging, just set 'logger' to the empty string (not undef).
+
 =item o maxlevel => $level
 
 This option is only used if this module creates an object of type L<Log::Handler>. See L<Log::Handler::Levels>.
@@ -378,7 +380,15 @@ Default: ''.
 
 The default means the output file is not written. Use the L</output_string()> method to retrieve the string.
 
-=item o tokens => $arraref
+=item o parsed_file => aParsedOutputFileName
+
+Specify the name of a CSV file of parsed tokens to read.
+
+Default: ''.
+
+This file is read only if the token option (next) does not contain an arrayref of tokens to process.
+
+=item o tokens => $arrayref
 
 Specify the arrayref of tokens output by the parser.
 
@@ -418,7 +428,7 @@ Here, the [] indicate an optional parameter.
 
 Get or set the logger object.
 
-To disable logging, just set logger to the empty string.
+To disable logging, just set 'logger' to the empty string (not undef), in the call to L</new()>.
 
 =head2 maxlevel([$string])
 
@@ -462,6 +472,14 @@ Returns the text string of the rendered graph.
 
 To save the output in a file, use the 'output_file' parameter to L</new()>.
 
+=head2 parsed_file([$file_name])
+
+'parsed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
+Here, the [] indicate an optional parameter.
+
+Get or set the name of the file of parsed tokens to read.
+
 =head2 run()
 
 Renders the arrayref of items as a string and, optionally, writes that string to the output file.
@@ -479,6 +497,24 @@ Returns 0 for success and 1 for failure.
 Here, the [] indicate an optional parameter.
 
 Gets or sets the arrayref of tokens to be rendered.
+
+=head2 utils([$aUtilsObject])
+
+Here, the [] indicate an optional parameter.
+
+Get or set the utils object.
+
+Default: A object of type L<GraphViz2::Marpa::Utils>.
+
+=head1 FAQ
+
+=head2 If I input x.dot and output x.rend, should these 2 files be identical?
+
+Yes - at least in the sense that running dot with them as input will produce the same output files. This is using the default renderer, of course.
+
+Since comments in *.dot files are discarded, they can never be in the output files (*.lex, *.parse and *.rend).
+
+So, if x.dot is formatted as I do, then x.rend will be formatted identically.
 
 =head1 Machine-Readable Change Log
 

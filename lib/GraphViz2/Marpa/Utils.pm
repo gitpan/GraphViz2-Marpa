@@ -11,7 +11,7 @@ use IO::File;
 
 use Text::CSV_XS;
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 # ------------------------------------------------
 
@@ -140,9 +140,17 @@ Key-value pairs accepted in the parameter list:
 
 =head1 Methods
 
+=head2 get_files($dir_name, $type)
+
+Returns a sorted list of files of type (extension) $type from directory $dir_name.
+
 =head2 justify($string)
 
 Right justify the $string in a field of 20 spaces.
+
+=head2 new()
+
+See L</Constructor and Initialization> for details on the parameters accepted by L</new()>.
 
 =head2 read_csv_file($file_name)
 

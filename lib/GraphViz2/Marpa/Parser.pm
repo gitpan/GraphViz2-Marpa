@@ -28,6 +28,7 @@ fieldhash my %maxlevel     => 'maxlevel';
 fieldhash my %minlevel     => 'minlevel';
 fieldhash my %output_file  => 'output_file';
 fieldhash my %parsed_file  => 'parsed_file';
+fieldhash my %renderer     => 'renderer';
 fieldhash my %report_items => 'report_items';
 fieldhash my %tokens       => 'tokens';
 fieldhash my %utils        => 'utils';
@@ -35,7 +36,7 @@ fieldhash my %utils        => 'utils';
 # $myself is a copy of $self for use by functions called by Marpa.
 
 our $myself;
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 # --------------------------------------------------
 # This is a function, not a method.
@@ -508,11 +509,12 @@ sub _init
 	$$arg{item_count}   = 0;
 	$$arg{items}        = Set::Array -> new;
 	$$arg{lexed_file}   ||= ''; # Caller can set.
-	$$arg{logger}       ||= undef;    # Caller can set.
+	$$arg{logger}       ||= defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
 	$$arg{maxlevel}     ||= 'notice'; # Caller can set.
 	$$arg{minlevel}     ||= 'error';  # Caller can set.
 	$$arg{output_file}  ||= '';       # Caller can set.
 	$$arg{parsed_file}  ||= '';       # Caller can set.
+	$$arg{renderer}     ||= defined($$arg{renderer}) ? $$arg{renderer} : undef; # Caller can set.
 	$$arg{report_items} ||= 0;        # Caller can set.
 	$$arg{tokens}       ||= [];       # Caller can set.
 	$$arg{utils}        = GraphViz2::Marpa::Utils -> new;
@@ -531,6 +533,18 @@ sub _init
 			 minlevel       => $self -> minlevel,
 		 }
 		);
+	}
+
+	if (! defined $self -> renderer)
+	{
+		$self -> renderer
+			(
+			 GraphViz2::Marpa::Renderer::GraphViz2 -> new
+			 (
+			  logger      => $self -> logger,
+			  output_file => $self -> output_file,
+			 )
+			);
 	}
 
 	return $self;
@@ -658,18 +672,12 @@ sub run
 		$self -> generate_parsed_file($file_name);
 	}
 
-	# Pass tokens to the renderer.
+	# Pass the tokens to the renderer.
 
-	$file_name = $self -> output_file;
-
-	if ($file_name)
+	if ($self -> renderer)
 	{
-		GraphViz2::Marpa::Renderer::GraphViz2 -> new
-			(
-			 logger      => $self -> logger,
-			 output_file => $file_name,
-			 tokens      => [$self -> items -> print],
-			) -> run;
+		$self -> renderer -> tokens([$self -> items -> print]);
+		$self -> renderer -> run;
 	}
 
 	# Return 0 for success and 1 for failure.
@@ -853,6 +861,14 @@ The value supplied by the 'tokens' option takes preference over the 'lexed_file'
 
 See the distro for data/*.lex.
 
+=item o logger => $aLoggerObject
+
+Specify a logger compatible with L<Log::Handler>, for the parser and renderer to use.
+
+Default: A logger of type L<Log::Handler> which writes to the screen.
+
+To disable logging, just set 'logger' to the empty string (not undef).
+
 =item o maxlevel => $logOption1
 
 This option affects L<Log::Handler>.
@@ -886,6 +902,12 @@ Specify the name of a CSV file of parsed tokens to write. This file can be input
 Default: ''.
 
 The default means the file is not written.
+
+=item o renderer => $aRendererObject
+
+Specify a renderer for the parser to use.
+
+Default: A object of type L<GraphViz2::Marpa::Renderer::GraphViz2>.
 
 =item o report_items => $Boolean
 
@@ -960,7 +982,7 @@ Get or set the logger object.
 
 To disable logging, just set 'logger' to the empty string, in the call to L</new()>.
 
-This logger is passed to L<GraphViz2::Marpa::Lexer::DFA>.
+This logger is passed to the default renderer.
 
 =head2 maxlevel([$string])
 
@@ -996,6 +1018,24 @@ Here, the [] indicate an optional parameter.
 
 Get or set the name of the file to be passed to the renderer.
 
+=head2 parsed_file([$file_name])
+
+'parsed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
+Here, the [] indicate an optional parameter.
+
+Get or set the name of the file of parsed tokens for the parser to write. This file can be input to the renderer.
+
+=head2 renderer([$renderer_object])
+
+'renderer' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
+Here, the [] indicate an optional parameter.
+
+Get or set the renderer object.
+
+This renderer renders the tokens output by the parser.
+
 =head2 report_items([$Boolean])
 
 'report_items' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
@@ -1020,7 +1060,26 @@ Get or set the arrayref of lexed tokens to process.
 
 The value supplied by the 'tokens' option takes preference over the 'lexed_file' option.
 
+=head2 utils([$aUtilsObject])
+
+Here, the [] indicate an optional parameter.
+
+Get or set the utils object.
+
+Default: A object of type L<GraphViz2::Marpa::Utils>.
+
 =head1 FAQ
+
+=head2 How can I switch from Marpa::XS to Marpa::PP?
+
+Install Marpa::PP manually. It is not mentioned in Build.PL or Makefile.PL.
+
+Patch GraphViz2::Marpa::Parser (line 15) from Marpa::XS to Marpa:PP.
+
+Then, run the tests which ship with this module. I've tried this, and the tests all worked. You don't need to install the code to test it. Just use:
+
+	shell> cd GraphViz2-Marpa-1.00/
+	shell> prove -Ilib -v t
 
 =head2 Where are the scripts documented?
 
