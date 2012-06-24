@@ -4,13 +4,13 @@ digraph graph_35
 	[
 		color = "red"
 		fontcolor = "green"
-		label = "<html-style label for node_35_1>"
+		label = <<table><tr><td>html-style label for node_35_1</td></tr></table>>
 	]
 	node_35_2
 	[
 		color = "green"
 		fontcolor = "red"
-		label = "<html-style label for node_35_2>"
+		label = <<table><tr><td>html-style label for node_35_2</td></tr></table>>
 	]
 	node_35_1 -> node_35_2
 	[

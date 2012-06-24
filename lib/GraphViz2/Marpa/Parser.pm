@@ -36,7 +36,7 @@ fieldhash my %utils        => 'utils';
 # $myself is a copy of $self for use by functions called by Marpa.
 
 our $myself;
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 # --------------------------------------------------
 # This is a function, not a method.
@@ -509,12 +509,12 @@ sub _init
 	$$arg{item_count}   = 0;
 	$$arg{items}        = Set::Array -> new;
 	$$arg{lexed_file}   ||= ''; # Caller can set.
-	$$arg{logger}       ||= defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
+	$$arg{logger}       = defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
 	$$arg{maxlevel}     ||= 'notice'; # Caller can set.
 	$$arg{minlevel}     ||= 'error';  # Caller can set.
 	$$arg{output_file}  ||= '';       # Caller can set.
 	$$arg{parsed_file}  ||= '';       # Caller can set.
-	$$arg{renderer}     ||= defined($$arg{renderer}) ? $$arg{renderer} : undef; # Caller can set.
+	$$arg{renderer}     = defined($$arg{renderer}) ? $$arg{renderer} : undef; # Caller can set.
 	$$arg{report_items} ||= 0;        # Caller can set.
 	$$arg{tokens}       ||= [];       # Caller can set.
 	$$arg{utils}        = GraphViz2::Marpa::Utils -> new;
@@ -681,7 +681,7 @@ sub run
 	}
 
 	# Return 0 for success and 1 for failure.
-	
+
 	return 0;
 
 } # End of run.
@@ -1069,6 +1069,20 @@ Get or set the utils object.
 Default: A object of type L<GraphViz2::Marpa::Utils>.
 
 =head1 FAQ
+
+=head2 Why doesn't the lexer/parser handle my HTML-style labels?
+
+Traps for young players:
+
+=over 4
+
+=item o The <br /> component must include the '/'. <br align='center'> is not accepted by Graphviz
+
+=item o The <br />'s attributes must use single quotes because output files use CSV with double quotes
+
+=back
+
+See data/38.* for good examples.
 
 =head2 How can I switch from Marpa::XS to Marpa::PP?
 

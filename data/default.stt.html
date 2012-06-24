@@ -4,9 +4,9 @@
 </head>
 <body>
 
-<h1 align="center">State Transition Table for GraphViz2::Marpa V 1.00</h1>
+<h1 align="center">State Transition Table for GraphViz2::Marpa V 1.02</h1>
 
-<p>This is the STT for <a href="http://metacpan.org/search?q=GraphViz2%3A%3AMarpa">GraphViz2::Marpa</a> V 1.00.</p>
+<p>This is the STT for <a href="http://metacpan.org/search?q=GraphViz2%3A%3AMarpa">GraphViz2::Marpa</a> V 1.02.</p>
 
 <p>It covers most, but perhaps not quite all, of the <a href="http://www.graphviz.org/content/dot-language">Graphviz</a> dot language.</p>
 
@@ -48,7 +48,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">graph</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">save_prefix</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">ID</div></td>
 </tr>
 <tr>
@@ -59,7 +59,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">graph_id</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">:(?:"[^"]+"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">:(?:"[^"]+"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">: + ID</div></td>
 </tr>
 <tr>
@@ -81,7 +81,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">initial</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">:(?:"[^"]+"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*)):(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9])</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">:(?:"[^"]+"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*)):(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9])</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">: + ID + : + Compass point</div></td>
 </tr>
 <tr>
@@ -132,7 +132,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">graph_id</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">open_brace</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">save_graph_id</div></td>
@@ -277,7 +277,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">statement_list_1</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">subgraph</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">graph_id</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">reset_attribute_list</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">save_id_1</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
@@ -286,7 +286,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">id_a</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
@@ -396,7 +396,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">id_a</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
@@ -517,7 +517,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">:(?:"[^"]+"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*)):(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9])</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">:(?:"[^"]+"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*)):(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9])</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">statement_list_1</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
@@ -528,7 +528,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">:(?:"[^"]+"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">:(?:"[^"]+"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">statement_list_1</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
@@ -539,7 +539,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">id_b</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
@@ -671,7 +671,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">:(?:"[^"]+"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*)):(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9])</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">:(?:"[^"]+"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*)):(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9])</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">statement_list_1</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
@@ -682,7 +682,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">:(?:"[^"]+"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">:(?:"[^"]+"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">statement_list_1</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
@@ -693,7 +693,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">id_a</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
@@ -814,7 +814,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">id_a</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
@@ -880,10 +880,21 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">attribute_list</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">attribute_a</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">set_attribute_list</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">save_attribute</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+</tr>
+<tr>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">]</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">statement_list_1</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 </tr>
@@ -935,7 +946,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">attribute_a</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">attribute_b</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">save_attribute</div></td>
@@ -1012,7 +1023,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">attribute_b</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">attribute_a</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">save_attribute</div></td>
@@ -1100,7 +1111,7 @@ although the formatting might be slightly different.</p>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
+<td><div style="border: thin solid; margin: 0; padding: 0">(?:"[^"]*"|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">id_a</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
 <td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>

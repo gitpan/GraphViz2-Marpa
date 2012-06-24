@@ -39,7 +39,7 @@ fieldhash my %timeout      => 'timeout';
 fieldhash my %type         => 'type';
 fieldhash my %utils        => 'utils';
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 # --------------------------------------------------
 
@@ -276,7 +276,7 @@ sub _init
 	$$arg{input_file}   ||= ''; # Caller can set.
 	$$arg{items}        = Set::Array -> new;
 	$$arg{lexed_file}   ||= '';       # Caller can set.
-	$$arg{logger}       ||= defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
+	$$arg{logger}       = defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
 	$$arg{maxlevel}     ||= 'notice'; # Caller can set.
 	$$arg{minlevel}     ||= 'error';  # Caller can set.
 	$$arg{report_items} ||= 0;        # Caller can set.
@@ -514,7 +514,7 @@ sub _read_internal_file
 sub report
 {
 	my($self)   = @_;
-	my($format) = '%4s  %-4s  %-16s';
+	my($format) = '%4s  %-16s  %s';
 
 	$self -> log(notice => sprintf($format, 'Item', 'Type', 'Value') );
 
@@ -987,6 +987,20 @@ Default: A object of type L<GraphViz2::Marpa::Utils>.
 
 =head1 FAQ
 
+=head2 Why doesn't the lexer/parser handle my HTML-style labels?
+
+Traps for young players:
+
+=over 4
+
+=item o The <br /> component must include the '/'. <br align='center'> is not accepted by Graphviz
+
+=item o The <br />'s attributes must use single quotes because output files use CSV with double quotes
+
+=back
+
+See data/38.* for good examples.
+
 =head2 Where are the scripts documented?
 
 In L<GraphViz2::Marpa/Scripts>.
@@ -1135,6 +1149,10 @@ This means that no output file, e.g. *.lex, *.parse or *.rend, will ever retain 
 
 Perhaps. Perfection is an extra-cost option... The cost is unknown, but huge donations are welcome.
 
+Actually, according to DOT's HTML-like label definition, L<http://www.graphviz.org/content/node-shapes#html>
+you can use <...> instead of "..." to delimit text labels. The lexer as of V 1.02 does not handle this case.
+That is, the code only recognizes HTML-like labels which are delimited with '<<' and '>>'.
+
 =back
 
 =head1 Machine-Readable Change Log
@@ -1173,15 +1191,15 @@ __DATA__
 @@ stt
 
 Start,Accept,State,Event,Next,Entry,Exit,Regexp,Interpretation
-Yes,,initial,strict,graph,,save_prefix,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",ID
-,,,(?:graph|digraph),graph_id,,,":(?:""[^""]+""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",: + ID
+Yes,,initial,strict,graph,,save_prefix,"(?:""[^""]*""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",ID
+,,,(?:graph|digraph),graph_id,,,":(?:""[^""]+""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",: + ID
 ,,,\/\*.*?\*\/,initial,,,\/\*.*?\*\/,
-,,,\s+,initial,,,":(?:""[^""]+""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*)):(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9])",: + ID + : + Compass point
+,,,\s+,initial,,,":(?:""[^""]+""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*)):(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9])",: + ID + : + Compass point
 ,,,,,,,:(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9]),: + Compass point
 ,,graph,(?:graph|digraph),graph_id,,save_prefix,(?:->|--),Edge
 ,,,\s+,graph,,,,
 ,,,,,,,,
-,,graph_id,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",open_brace,,save_graph_id,,
+,,graph_id,"(?:""[^""]*""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",open_brace,,save_graph_id,,
 ,,,{,statement_list_1,,,,
 ,,,\/\*.*?\*\/,graph_id,,,,
 ,,,\s+,graph_id,,,,
@@ -1195,7 +1213,7 @@ Yes,,initial,strict,graph,,save_prefix,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0
 ,,,\s+,start_statement,,,,
 ,,,,,,,,
 ,Yes,statement_list_1,subgraph,graph_id,,save_id_1,,
-,,,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",id_a,,,,
+,,,"(?:""[^""]*""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",id_a,,,,
 ,,,(?:->|--),edge_id,,,,
 ,,,(?:\[),attribute_list,,,,
 ,,,{,statement_list_2,,,,
@@ -1205,7 +1223,7 @@ Yes,,initial,strict,graph,,save_prefix,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0
 ,,,\s+,statement_list_1,,,,
 ,,,,,,,,
 ,Yes,statement_list_2,subgraph,graph_id,,save_id_1,,
-,,,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",id_a,,,,
+,,,"(?:""[^""]*""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",id_a,,,,
 ,,,(?:->|--),edge_id,,,,
 ,,,(?:\[),attribute_list,,,,
 ,,,{,statement_list_1,,,,
@@ -1216,9 +1234,9 @@ Yes,,initial,strict,graph,,save_prefix,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0
 ,,,,,,,,
 ,,id_a,subgraph,graph_id,,save_id_2,,
 ,,,:(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9]),statement_list_1,,,,
-,,,":(?:""[^""]+""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*)):(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9])",statement_list_1,,,,
-,,,":(?:""[^""]+""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",statement_list_1,,,,
-,,,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",id_b,,,,
+,,,":(?:""[^""]+""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*)):(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9])",statement_list_1,,,,
+,,,":(?:""[^""]+""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",statement_list_1,,,,
+,,,"(?:""[^""]*""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",id_b,,,,
 ,,,{,statement_list_1,,,A stand-alone {,
 ,,,},end_statement,,,,
 ,,,(?:->|--),id_b,,,,
@@ -1230,9 +1248,9 @@ Yes,,initial,strict,graph,,save_prefix,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0
 ,,,,,,,,
 ,,id_b,subgraph,graph_id,,save_id_2,,
 ,,,:(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9]),statement_list_1,,,,
-,,,":(?:""[^""]+""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*)):(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9])",statement_list_1,,,,
-,,,":(?:""[^""]+""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",statement_list_1,,,,
-,,,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",id_a,,,,
+,,,":(?:""[^""]+""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*)):(?:n|ne|e|se|s|sw|w|nw|c|_)(?![a-zA-Z_0-9])",statement_list_1,,,,
+,,,":(?:""[^""]+""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",statement_list_1,,,,
+,,,"(?:""[^""]*""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",id_a,,,,
 ,,,{,statement_list_1,,,A stand-alone {,
 ,,,},end_statement,,,,
 ,,,(?:->|--),id_a,,,,
@@ -1243,26 +1261,26 @@ Yes,,initial,strict,graph,,save_prefix,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0
 ,,,\s+,id_b,,,,
 ,,,,,,,,
 ,,edge_id,subgraph,id_a,,save_id_1,,
-,,,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",id_a,,,,
+,,,"(?:""[^""]*""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",id_a,,,,
 ,,,(?:->|--),statement_list_1,,,,
 ,,,},end_statement,,,,
 ,,,\/\*.*?\*\/,edge_id,,,,
 ,,,\s+,edge_id,,,,
 ,,,,,,,,
-,,attribute_list,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",attribute_a,,save_attribute,,
+,,attribute_list,"(?:""[^""]*""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",attribute_a,,save_attribute,,
 ,,,],statement_list_1,,,,
 ,,,},statement_list_1,,,,
 ,,,\/\*.*?\*\/,attribute_list,,,,
 ,,,\s+,attribute_list,,,,
 ,,,,,,,,
-,,attribute_a,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",attribute_b,,save_attribute,,
+,,attribute_a,"(?:""[^""]*""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",attribute_b,,save_attribute,,
 ,,,=,attribute_b,,,,
 ,,,",",attribute_list,,,,
 ,,,],statement_list_1,,,,
 ,,,\/\*.*?\*\/,attribute_a,,,,
 ,,,\s+,attribute_a,,,,
 ,,,,,,,,
-,,attribute_b,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",attribute_a,,save_attribute,,
+,,attribute_b,"(?:""[^""]*""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",attribute_a,,save_attribute,,
 ,,,=,attribute_a,,,,
 ,,,",",attribute_list,,,,
 ,,,],statement_list_1,,,,
@@ -1270,7 +1288,7 @@ Yes,,initial,strict,graph,,save_prefix,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0
 ,,,\s+,attribute_b,,,,
 ,,,,,,,,
 ,Yes,end_statement,subgraph,graph_id,,save_id_1,,
-,,,"(?:""[^""]*""|<[^>]*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",id_a,,,,
+,,,"(?:""[^""]*""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",id_a,,,,
 ,,,(?:->|--),edge_id,,,,
 ,,,\[,attribute_list,,,,
 ,,,{,statement_list_1,,,,

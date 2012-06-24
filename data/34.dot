@@ -4,6 +4,6 @@ digraph graph_34
 	[
 		color = red
 		fontcolor = green
-		label = <html-style label with &lt;&gt; embedded angle brackets>
+		label = <<table><tr><td>html-style label with &lt;&gt; embedded angle brackets</td></tr></table>>
 	];
 }

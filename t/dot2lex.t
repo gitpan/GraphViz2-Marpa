@@ -39,8 +39,7 @@ for my $file_name (grep{! /^(?:01|02|03|04|05|06|08)/} GraphViz2::Marpa::Utils -
 	$in_file  = File::Spec -> catfile($data_dir_name, "$file_name.$in_suffix");
 	$out_file = File::Spec -> catfile($temp_dir_name, "$file_name.$out_suffix");
 
-	`$^X scripts/lex.pl -i $in_file -l $out_file`;
-
+	my($result) = `$^X scripts/lex.pl -i $in_file -l $out_file`;
 	$in_file     = File::Spec -> catfile($data_dir_name, "$file_name.$out_suffix");
 	@old_content = slurp $in_file;
 	@new_content = slurp $out_file;

@@ -22,7 +22,7 @@ fieldhash my %parsed_file   => 'parsed_file';
 fieldhash my %tokens        => 'tokens';
 fieldhash my %utils         => 'utils';
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 # --------------------------------------------------
 
@@ -30,7 +30,7 @@ sub format_attributes
 {
 	my($self, $attributes) = @_;
 
-	$self -> new_item('[', 1, 0); 
+	$self -> new_item('[', 1, 0);
 
 	my($name);
 	my($value);
@@ -38,8 +38,9 @@ sub format_attributes
 	while (@$attributes)
 	{
 		($name, $value) = (shift @$attributes, shift @$attributes);
+		$value          = qq|"$value"| if ($value !~ /^<</); # No quotes for HTML-like labels.
 
-		$self -> new_item(qq|$name = "$value"|, 1, 0, 0);
+		$self -> new_item(qq|$name = $value|, 1, 0, 0);
 	}
 
 	$self -> new_item(']', 1, 0, 0);
@@ -271,7 +272,7 @@ sub run
 	}
 
 	# Return 0 for success and 1 for failure.
-	
+
 	return 0;
 
 } # End of run.

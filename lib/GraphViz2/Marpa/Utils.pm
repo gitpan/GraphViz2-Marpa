@@ -11,7 +11,7 @@ use IO::File;
 
 use Text::CSV_XS;
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 # ------------------------------------------------
 

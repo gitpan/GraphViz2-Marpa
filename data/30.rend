@@ -4,6 +4,6 @@ digraph graph_30
 	[
 		color = "red"
 		fontcolor = "green"
-		label = "<html-style label>"
+		label = <<table><tr><td>html-style label</td></tr></table>>
 	]
 }

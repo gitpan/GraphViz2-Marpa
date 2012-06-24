@@ -25,7 +25,7 @@ fieldhash my %stt_file     => 'stt_file';
 fieldhash my %timeout      => 'timeout';
 fieldhash my %type         => 'type';
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 
 # --------------------------------------------------
 
@@ -35,7 +35,7 @@ sub _init
 	$$arg{description}  ||= '';       # Caller can set.
 	$$arg{input_file}   ||= '';       # Caller can set.
 	$$arg{lexed_file}   ||= '';       # Caller can set.
-	$$arg{logger}       ||= defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
+	$$arg{logger}       = defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
 	$$arg{maxlevel}     ||= 'notice'; # Caller can set.
 	$$arg{minlevel}     ||= 'error';  # Caller can set.
 	$$arg{output_file}  ||= '';       # Caller can set.
@@ -146,7 +146,7 @@ sub run
 
 =head1 NAME
 
-L<GraphViz2::Marpa> - A Perl lexer and parser for Graphviz dot files
+GraphViz2::Marpa - A Perl lexer and parser for Graphviz dot files
 
 =head1 Synopsis
 
@@ -699,6 +699,10 @@ Yes - at least in the sense that running dot with them as input will produce the
 Since comments in *.dot files are discarded, they can never be in the output files (*.lex, *.parse and *.rend).
 
 So, if x.dot is formatted as I do, then x.rend will be formatted identically.
+
+=head2 Why does the report_items option output 2 copies of the tokens?
+
+Because the 1st copy is printed by the lexer and the 2nd by the parser.
 
 =head1 Machine-Readable Change Log
 
