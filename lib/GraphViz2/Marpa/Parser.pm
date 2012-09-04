@@ -36,14 +36,14 @@ fieldhash my %utils        => 'utils';
 # $myself is a copy of $self for use by functions called by Marpa.
 
 our $myself;
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 
 # --------------------------------------------------
 # This is a function, not a method.
 
 sub attribute_id
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('attribute_id', $t1);
 
@@ -56,7 +56,7 @@ sub attribute_id
 
 sub attribute_value
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('attribute_value', $t1);
 
@@ -69,7 +69,7 @@ sub attribute_value
 
 sub colon_id
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('colon', $t1);
 
@@ -82,7 +82,7 @@ sub colon_id
 
 sub compass_id
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('compass_point', $t1);
 
@@ -95,7 +95,7 @@ sub compass_id
 
 sub digraph
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('digraph', $t1);
 
@@ -108,7 +108,7 @@ sub digraph
 
 sub edge_id
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('edge_id', $t1);
 
@@ -121,7 +121,7 @@ sub edge_id
 
 sub end_attributes
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('end_attribute', $t1);
 
@@ -134,7 +134,7 @@ sub end_attributes
 
 sub end_graph
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('end_graph', $t1);
 
@@ -147,7 +147,7 @@ sub end_graph
 
 sub end_subgraph
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('end_subgraph', $t1);
 
@@ -181,276 +181,276 @@ sub grammar
 	my($self)    = @_;
 	my($grammar) = Marpa::Grammar -> new
 		({
-		 actions       => __PACKAGE__,
-		 lhs_terminals => 0,
-		 start         => 'graph_grammar',
-		 symbols       =>
-		 {
-			 attribute_id    => {terminal => 1},
-			 attribute_value => {terminal => 1},
-			 close_brace     => {terminal => 1},
-			 close_bracket   => {terminal => 1},
-			 colon           => {terminal => 1},
-			 compass_point   => {terminal => 1},
-			 digraph         => {terminal => 1},
-			 edge_id         => {terminal => 1},
-			 end_subgraph    => {terminal => 1},
-			 equals          => {terminal => 1},
-			 graph_id        => {null_value => '', terminal => 1},
-			 id              => {terminal => 1},
-			 node_id         => {terminal => 1},
-			 open_brace      => {terminal => 1},
-			 open_bracket    => {terminal => 1},
-			 port_id         => {terminal => 1},
-			 start_subgraph  => {terminal => 1},
-			 strict          => {terminal => 1},
-		 },
-		 rules =>
-			 [
-			  {   # Root-level stuff.
-				  lhs => 'graph_grammar',
-				  rhs => [qw/prolog_and_graph/],
-			  },
-			  {
-				  lhs => 'prolog_and_graph',
-				  rhs => [qw/prolog_definition graph_sequence_definition/],
-			  },
-			  {   # Prolog stuff.
-				  lhs => 'prolog_definition',
-				  rhs => [qw/strict_definition digraph_definition graph_id_definition/],
-			  },
-			  {
-				  lhs    => 'strict_definition',
-				  rhs    => [qw/strict/],
-				  action => 'strict',
-			  },
-			  {
-				  lhs    => 'digraph_definition',
-				  rhs    => [qw/digraph/],
-				  action => 'digraph',
-			  },
-			  {
-				  lhs    => 'graph_id_definition',
-				  rhs    => [qw/graph_id/],
-				  action => 'graph_id',
-			  },
-			  {   # Graph stuff.
-				  lhs => 'graph_sequence_definition',
-				  rhs => [qw/start_graph graph_sequence_list end_graph/],
-			  },
-			  {
-				  lhs    => 'start_graph',
-				  rhs    => [qw/open_brace/],
-				  action => 'start_graph',
-			  },
-			  {
-				  lhs => 'graph_sequence_list',
-				  rhs => [qw/graph_sequence_item/],
-				  min => 0,
-			  },
-			  {
-				  lhs => 'graph_sequence_item', # 1 of 7.
-				  rhs => [qw/node_sequence_definition/],
-			  },
-			  {
-				  lhs => 'graph_sequence_item', # 2 of 7.
-				  rhs => [qw/node_sequence_definition edge_sequence_definition node_sequence_definition/],
-			  },
-			  {
-				  lhs => 'graph_sequence_item', # 3 of 7.
-				  rhs => [qw/node_sequence_definition edge_sequence_definition graph_sequence_definition/],
-			  },
-			  {
-				  lhs => 'graph_sequence_item', # 4 of 7.
-				  rhs => [qw/node_sequence_definition graph_sequence_definition/],
-			  },
-			  {
-				  lhs => 'graph_sequence_item', # 5 of 7.
-				  rhs => [qw/attribute_sequence_definition/],
-			  },
-			  {
-				  lhs => 'graph_sequence_item', # 6 of 7.
-				  rhs => [qw/id_sequence_definition/],
-			  },
-			  {
-				  lhs => 'graph_sequence_item', # 7 of 7.
-				  rhs => [qw/subgraph_sequence_definition/],
-			  },
-			  {
-				  lhs    => 'end_graph',
-				  rhs    => [qw/close_brace/],
-				  action => 'end_graph',
-			  },
-			  {   # Node stuff.
-				  lhs => 'node_sequence_definition',
-				  rhs => [qw/node_sequence_item/],
-			  },
-			  {
-				  lhs => 'node_sequence_item', # 1 of 4.
-				  rhs => [qw/node_statement/],
-			  },
-			  {
-				  lhs => 'node_sequence_item', # 2 of 4.
-				  rhs => [qw/node_statement attribute_definition/],
-			  },
-			  {
-				  lhs => 'node_sequence_item', # 3 of 4.
-				  rhs => [qw/node_statement attribute_definition graph_sequence_item/],
-			  },
-			  {
-				  lhs => 'node_sequence_item', # 3 of 4.
-				  rhs => [qw/start_graph graph_sequence_list end_graph/],
-			  },
-			  {
-				  lhs => 'node_statement', # 1 of 4.
-				  rhs => [qw/node_item/],
-			  },
-			  {
-				  lhs => 'node_statement', # 2 of 4.
-				  rhs => [qw/node_item colon_item port_item/],
-			  },
-			  {
-				  lhs => 'node_statement', # 3 of 4.
-				  rhs => [qw/node_item colon_item port_item colon_item compass_item/],
-			  },
-			  {
-				  lhs => 'node_statement', # 4 of 4.
-				  rhs => [qw/node_item colon_item compass_item/],
-			  },
-			  {
-				  lhs    => 'node_item',
-				  rhs    => [qw/node_id/],
-				  action => 'node_id',
-			  },
-			  {
-				  lhs    => 'colon_item',
-				  rhs    => [qw/colon/],
-				  action => 'colon_id',
-			  },
-			  {
-				  lhs    => 'port_item',
-				  rhs    => [qw/port_id/],
-				  action => 'port_id',
-			  },
-			  {
-				  lhs    => 'compass_item',
-				  rhs    => [qw/compass_point/],
-				  action => 'compass_id',
-			  },
-			  {   # Id stuff.
-				  lhs => 'id_sequence_definition',
-				  rhs => [qw/id_sequence_item/],
-			  },
-			  {
-				  lhs => 'id_sequence_item', # 1 of 2.
-				  rhs => [qw/id_statement/],
-			  },
-			  {
-				  lhs => 'id_sequence_item', # 2 of 2.
-				  rhs => [qw/id_statement attribute_definition/],
-			  },
-			  {
-				  lhs => 'id_statement',
-				  rhs => [qw/id/],
-				  action => 'id',
-			  },
-			  {   # Subgraph stuff.
-				  lhs => 'subgraph_sequence_definition',
-				  rhs => [qw/start_subgraph_count subgraph_id graph_sequence_definition end_subgraph_count/],
-			  },
-			  {
-				  lhs    => 'start_subgraph_count',
-				  rhs    => [qw/start_subgraph/],
-				  action => 'start_subgraph',
-			  },
-			  {
-				  lhs => 'subgraph_id',
-				  rhs => [qw/graph_id/],
-				  action => 'subgraph_id',
-			  },
-			  {
-				  lhs => 'end_subgraph_count',
-				  rhs => [qw/end_subgraph/],
-				  action => 'end_subgraph',
-			  },
-			  {   # Edge stuff.
-				  lhs => 'edge_sequence_definition',
-				  rhs => [qw/edge_sequence_item/],
-			  },
-			  {
-				  lhs => 'edge_sequence_item', # 1 of 2.
-				  rhs => [qw/edge_statement/],
-			  },
-			  {
-				  lhs => 'edge_sequence_item', # 2 of 2.
-				  rhs => [qw/edge_statement graph_sequence_definition/],
-			  },
-			  {
-				  lhs => 'edge_statement',
-				  rhs => [qw/edge_name attribute_definition/],
-			  },
-			  {
-				  lhs    => 'edge_name',
-				  rhs    => [qw/edge_id/],
-				  action => 'edge_id',
-			  },
-			  {   # Attribute stuff.
-				  lhs => 'attribute_definition',
-				  rhs => [qw/attribute_sequence/],
-				  min => 0,
-			  },
-			  {
-				  lhs => 'attribute_sequence',
-				  rhs => [qw/start_attributes attribute_sequence_definition end_attributes/],
-			  },
-			  {
-				  lhs    => 'start_attributes',
-				  rhs    => [qw/open_bracket/],
-				  action => 'start_attributes',
-			  },
-			  {
-				  lhs => 'attribute_sequence_definition',
-				  rhs => [qw/attribute_sequence_item/],
-			  },
-			  {
-				  lhs => 'attribute_sequence_item', # 1 of 3.
-				  rhs => [qw/attribute_statement/],
-			  },
-			  {
-				  lhs => 'attribute_sequence_item', # 2 of 3.
-				  rhs => [qw/attribute_statement attribute_sequence_item/],
-			  },
-			  {
-				  lhs => 'attribute_sequence_item', # 3 of 3.
-				  rhs => [qw/attribute_sequence_item graph_sequence_item/],
-			  },
-			  {
-				  lhs => 'attribute_statement',
-				  rhs => [qw/attribute_key has attribute_val/],
-			  },
-			  {
-				  lhs    => 'attribute_key',
-				  rhs    => [qw/attribute_id/],
-				  min    => 1,
-				  action => 'attribute_id',
-			  },
-			  {
-				  lhs    => 'has',
-				  rhs    => [qw/equals/],
-				  min    => 1,
-			  },
-			  {
-				  lhs    => 'attribute_val',
-				  rhs    => [qw/attribute_value/],
-				  min    => 1,
-				  action => 'attribute_value',
-			  },
-			  {
-				  lhs    => 'end_attributes',
-				  rhs    => [qw/close_bracket/],
-				  action => 'end_attributes',
-			  },
-			 ],
+		actions       => __PACKAGE__,
+		lhs_terminals => 0,
+		start         => 'graph_grammar',
+		symbols       =>
+		{
+			attribute_id    => {terminal => 1},
+			attribute_value => {terminal => 1},
+			close_brace     => {terminal => 1},
+			close_bracket   => {terminal => 1},
+			colon           => {terminal => 1},
+			compass_point   => {terminal => 1},
+			digraph         => {terminal => 1},
+			edge_id         => {terminal => 1},
+			end_subgraph    => {terminal => 1},
+			equals          => {terminal => 1},
+			graph_id        => {null_value => '', terminal => 1},
+			id              => {terminal => 1},
+			node_id         => {terminal => 1},
+			open_brace      => {terminal => 1},
+			open_bracket    => {terminal => 1},
+			port_id         => {terminal => 1},
+			start_subgraph  => {terminal => 1},
+			strict          => {terminal => 1},
+		},
+		rules =>
+			[
+			 {   # Root-level stuff.
+				 lhs => 'graph_grammar',
+				 rhs => [qw/prolog_and_graph/],
+			 },
+			 {
+				 lhs => 'prolog_and_graph',
+				 rhs => [qw/prolog_definition graph_sequence_definition/],
+			 },
+			 {   # Prolog stuff.
+				 lhs => 'prolog_definition',
+				 rhs => [qw/strict_definition digraph_definition graph_id_definition/],
+			 },
+			 {
+				 lhs    => 'strict_definition',
+				 rhs    => [qw/strict/],
+				 action => 'strict',
+			 },
+			 {
+				 lhs    => 'digraph_definition',
+				 rhs    => [qw/digraph/],
+				 action => 'digraph',
+			 },
+			 {
+				 lhs    => 'graph_id_definition',
+				 rhs    => [qw/graph_id/],
+				 action => 'graph_id',
+			 },
+			 {   # Graph stuff.
+				 lhs => 'graph_sequence_definition',
+				 rhs => [qw/start_graph graph_sequence_list end_graph/],
+			 },
+			 {
+				 lhs    => 'start_graph',
+				 rhs    => [qw/open_brace/],
+				 action => 'start_graph',
+			 },
+			 {
+				 lhs => 'graph_sequence_list',
+				 rhs => [qw/graph_sequence_item/],
+				 min => 0,
+			 },
+			 {
+				 lhs => 'graph_sequence_item', # 1 of 7.
+				 rhs => [qw/node_sequence_definition/],
+			 },
+			 {
+				 lhs => 'graph_sequence_item', # 2 of 7.
+				 rhs => [qw/node_sequence_definition edge_sequence_definition/],
+			 },
+			 {
+				 lhs => 'graph_sequence_item', # 3 of 7.
+				 rhs => [qw/node_sequence_definition edge_sequence_definition graph_sequence_definition/],
+			 },
+			 {
+				 lhs => 'graph_sequence_item', # 4 of 7.
+				 rhs => [qw/node_sequence_definition graph_sequence_definition/],
+			 },
+			 {
+				 lhs => 'graph_sequence_item', # 5 of 7.
+				 rhs => [qw/attribute_sequence_definition/],
+			 },
+			 {
+				 lhs => 'graph_sequence_item', # 6 of 7.
+				 rhs => [qw/id_sequence_definition/],
+			 },
+			 {
+				 lhs => 'graph_sequence_item', # 7 of 7.
+				 rhs => [qw/subgraph_sequence_definition/],
+			 },
+			 {
+				 lhs    => 'end_graph',
+				 rhs    => [qw/close_brace/],
+				 action => 'end_graph',
+			 },
+			 {   # Node stuff.
+				 lhs => 'node_sequence_definition',
+				 rhs => [qw/node_sequence_item/],
+			 },
+			 {
+				 lhs => 'node_sequence_item', # 1 of 4.
+				 rhs => [qw/node_statement/],
+			 },
+			 {
+				 lhs => 'node_sequence_item', # 2 of 4.
+				 rhs => [qw/node_statement attribute_definition/],
+			 },
+			 {
+				 lhs => 'node_sequence_item', # 3 of 4.
+				 rhs => [qw/node_statement attribute_definition graph_sequence_item/],
+			 },
+			 {
+				 lhs => 'node_sequence_item', # 3 of 4.
+				 rhs => [qw/start_graph graph_sequence_list end_graph/],
+			 },
+			 {
+				 lhs => 'node_statement', # 1 of 4.
+				 rhs => [qw/node_item/],
+			 },
+			 {
+				 lhs => 'node_statement', # 2 of 4.
+				 rhs => [qw/node_item colon_item port_item/],
+			 },
+			 {
+				 lhs => 'node_statement', # 3 of 4.
+				 rhs => [qw/node_item colon_item port_item colon_item compass_item/],
+			 },
+			 {
+				 lhs => 'node_statement', # 4 of 4.
+				 rhs => [qw/node_item colon_item compass_item/],
+			 },
+			 {
+				 lhs    => 'node_item',
+				 rhs    => [qw/node_id/],
+				 action => 'node_id',
+			 },
+			 {
+				 lhs    => 'colon_item',
+				 rhs    => [qw/colon/],
+				 action => 'colon_id',
+			 },
+			 {
+				 lhs    => 'port_item',
+				 rhs    => [qw/port_id/],
+				 action => 'port_id',
+			 },
+			 {
+				 lhs    => 'compass_item',
+				 rhs    => [qw/compass_point/],
+				 action => 'compass_id',
+			 },
+			 {   # Id stuff.
+				 lhs => 'id_sequence_definition',
+				 rhs => [qw/id_sequence_item/],
+			 },
+			 {
+				 lhs => 'id_sequence_item', # 1 of 2.
+				 rhs => [qw/id_statement/],
+			 },
+			 {
+				 lhs => 'id_sequence_item', # 2 of 2.
+				 rhs => [qw/id_statement attribute_definition/],
+			 },
+			 {
+				 lhs => 'id_statement',
+				 rhs => [qw/id/],
+				 action => 'id',
+			 },
+			 {   # Subgraph stuff.
+				 lhs => 'subgraph_sequence_definition',
+				 rhs => [qw/start_subgraph_count subgraph_id graph_sequence_definition end_subgraph_count/],
+			 },
+			 {
+				 lhs    => 'start_subgraph_count',
+				 rhs    => [qw/start_subgraph/],
+				 action => 'start_subgraph',
+			 },
+			 {
+				 lhs => 'subgraph_id',
+				 rhs => [qw/graph_id/],
+				 action => 'subgraph_id',
+			 },
+			 {
+				 lhs => 'end_subgraph_count',
+				 rhs => [qw/end_subgraph/],
+				 action => 'end_subgraph',
+			 },
+			 {   # Edge stuff.
+				 lhs => 'edge_sequence_definition',
+				 rhs => [qw/edge_sequence_item/],
+			 },
+			 {
+				 lhs => 'edge_sequence_item', # 1 of 3.
+				 rhs => [qw/edge_statement/],
+			 },
+			 {
+				 lhs => 'edge_sequence_item', # 2 of 3.
+				 rhs => [qw/edge_statement graph_sequence_definition/],
+			 },
+			 {
+				 lhs => 'edge_statement',
+				 rhs => [qw/edge_name attribute_definition/],
+			 },
+			 {
+				 lhs    => 'edge_name',
+				 rhs    => [qw/edge_id/],
+				 action => 'edge_id',
+			 },
+			 {   # Attribute stuff.
+				 lhs => 'attribute_definition',
+				 rhs => [qw/attribute_sequence/],
+				 min => 0,
+			 },
+			 {
+				 lhs => 'attribute_sequence',
+				 rhs => [qw/start_attributes attribute_sequence_definition end_attributes/],
+			 },
+			 {
+				 lhs    => 'start_attributes',
+				 rhs    => [qw/open_bracket/],
+				 action => 'start_attributes',
+			 },
+			 {
+				 lhs => 'attribute_sequence_definition',
+				 rhs => [qw/attribute_sequence_item/],
+			 },
+			 {
+				 lhs => 'attribute_sequence_item', # 1 of 3.
+				 rhs => [qw/attribute_statement/],
+			 },
+			 {
+				 lhs => 'attribute_sequence_item', # 2 of 3.
+				 rhs => [qw/attribute_statement attribute_sequence_item/],
+			 },
+			 {
+				 lhs => 'attribute_sequence_item', # 3 of 3.
+				 rhs => [qw/attribute_sequence_item graph_sequence_item/],
+			 },
+			 {
+				 lhs => 'attribute_statement',
+				 rhs => [qw/attribute_key has attribute_val/],
+			 },
+			 {
+				 lhs    => 'attribute_key',
+				 rhs    => [qw/attribute_id/],
+				 min    => 1,
+				 action => 'attribute_id',
+			 },
+			 {
+				 lhs    => 'has',
+				 rhs    => [qw/equals/],
+				 min    => 1,
+			 },
+			 {
+				 lhs    => 'attribute_val',
+				 rhs    => [qw/attribute_value/],
+				 min    => 1,
+				 action => 'attribute_value',
+			 },
+			 {
+				 lhs    => 'end_attributes',
+				 rhs    => [qw/close_bracket/],
+				 action => 'end_attributes',
+			 },
+			],
 		});
 
 	$grammar -> precompute;
@@ -464,7 +464,7 @@ sub grammar
 
 sub graph_id
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('graph_id', $t1);
 
@@ -477,7 +477,7 @@ sub graph_id
 
 sub id
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('id', $t1);
 
@@ -526,12 +526,12 @@ sub _init
 		$self -> logger(Log::Handler -> new);
 		$self -> logger -> add
 		(
-		 screen =>
-		 {
-			 maxlevel       => $self -> maxlevel,
-			 message_layout => '%m',
-			 minlevel       => $self -> minlevel,
-		 }
+		screen =>
+		{
+			maxlevel       => $self -> maxlevel,
+			message_layout => '%m',
+			minlevel       => $self -> minlevel,
+		}
 		);
 	}
 
@@ -539,11 +539,11 @@ sub _init
 	{
 		$self -> renderer
 			(
-			 GraphViz2::Marpa::Renderer::GraphViz2 -> new
-			 (
-			  logger      => $self -> logger,
-			  output_file => $self -> output_file,
-			 )
+			GraphViz2::Marpa::Renderer::GraphViz2 -> new
+			(
+			 logger      => $self -> logger,
+			 output_file => $self -> output_file,
+			)
 			);
 	}
 
@@ -585,7 +585,7 @@ sub new_item
 			name  => '',
 			type  => $type,
 			value => $value,
-		 });
+		});
 
 } # End of new_item.
 
@@ -594,7 +594,7 @@ sub new_item
 
 sub node_id
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('node_id', $t1);
 
@@ -607,7 +607,7 @@ sub node_id
 
 sub port_id
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('port_id', $t1);
 
@@ -691,7 +691,7 @@ sub run
 
 sub start_attributes
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('start_attribute', $t1);
 
@@ -704,7 +704,7 @@ sub start_attributes
 
 sub start_graph
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('start_graph', $t1);
 
@@ -717,7 +717,7 @@ sub start_graph
 
 sub start_subgraph
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('start_subgraph', $t1);
 
@@ -730,7 +730,7 @@ sub start_subgraph
 
 sub strict
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('strict', $t1);
 
@@ -743,7 +743,7 @@ sub strict
 
 sub subgraph_id
 {
-	my(undef, $t1, undef, $t2)  = @_;
+	my($stash, $t1, undef, $t2)  = @_;
 
 	$myself -> new_item('graph_id', $t1);
 

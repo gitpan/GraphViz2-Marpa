@@ -11,7 +11,7 @@ use IO::File;
 
 use Text::CSV_XS;
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 
 # ------------------------------------------------
 
@@ -83,7 +83,7 @@ L<GraphViz2::Marpa::Utils> - A Perl lexer and parser for Graphviz dot files
 
 =head1 Synopsis
 
-See scripts/generate.demo.pl, and scripts/dot2lex.pl etc.
+See scripts/generate.index.pl, and scripts/dot2lex.pl etc.
 
 =head1 Description
 

@@ -25,7 +25,7 @@ fieldhash my %stt_file     => 'stt_file';
 fieldhash my %timeout      => 'timeout';
 fieldhash my %type         => 'type';
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 
 # --------------------------------------------------
 
@@ -308,7 +308,7 @@ Convert all data/*.dot files to data/*.lex and data/*.parse and data/*.rend usin
 
 Run the lexer, and then run the parser on the output of the lexer. Try running with -h.
 
-=item o generate.demo.pl
+=item o generate.index.pl
 
 Generates html/index.html from data/*.dot and html/*.svg.
 
@@ -703,6 +703,18 @@ So, if x.dot is formatted as I do, then x.rend will be formatted identically.
 =head2 Why does the report_items option output 2 copies of the tokens?
 
 Because the 1st copy is printed by the lexer and the 2nd by the parser.
+
+=head2 How are the demo files generated?
+
+Run these scripts:
+
+	shell> perl scripts/dot2rend.pl
+	shell> perl scripts/rend2svg.pl
+	shell> perl scripts/generate.index.pl
+
+Then copy html/index.html and html/*.svg to the web server's doc root.
+
+In my case, I copy them to $doc_root/Perl-modules/html/graphviz2.marpa/.
 
 =head1 Machine-Readable Change Log
 

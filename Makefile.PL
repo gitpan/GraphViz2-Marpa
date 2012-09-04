@@ -49,7 +49,6 @@ WriteMakefile
 	 List::Compare               => 0.37,
 	 Log::Handler                => 0.71,
 	 Marpa::XS                   => 0.026000,
-	 Module::UseFrom             => 0.02,
 	 perl                        => '5.10.0', # For given/when.
 	 Perl6::Slurp                => 0.03,
 	 Pod::Usage                  => 1.36,

@@ -14,8 +14,6 @@ use List::Compare;
 
 use Log::Handler;
 
-use Module::UseFrom;
-
 use Perl6::Slurp;
 
 use Set::Array;
@@ -39,7 +37,7 @@ fieldhash my %timeout      => 'timeout';
 fieldhash my %type         => 'type';
 fieldhash my %utils        => 'utils';
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 
 # --------------------------------------------------
 

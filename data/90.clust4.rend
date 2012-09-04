@@ -27,8 +27,7 @@ digraph G
 		[
 			style = "filled"
 		]
-		b0 -> b1 -> b2
-		b3
+		b0 -> b1 -> b2 -> b3
 		graph
 		[
 			label = "process #2"

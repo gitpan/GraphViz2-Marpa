@@ -13,8 +13,7 @@ graph Petersen
 	[
 		color = "black"
 	]
-	0 -- 1 -- 2 -- 3
-	4 --0
+	0 -- 1 -- 2 -- 3 -- 4 --0
 	[
 		color = "blue"
 		len = "2.6"
@@ -44,7 +43,5 @@ graph Petersen
 		color = "red"
 		weight = "5"
 	]
-	5 -- 7
-	9 -- 6
-	8 -- 5
+	5 -- 7 -- 9 -- 6 -- 8 -- 5
 }

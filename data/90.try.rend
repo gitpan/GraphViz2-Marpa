@@ -10,9 +10,7 @@ digraph G
 	}
 	subgraph cluster_big
 	{
-		p -> q
-		r -> s
-		t
+		p -> q -> r -> s -> t
 		graph
 		[
 			label = "big"

@@ -1,5 +1,13 @@
 Revision history for Perl extension GraphViz2::Marpa.
 
+1.03  Mon Sep  3 09:28:00 2012
+	- Remove unused dependency Module::UseFrom.
+	- Fix disastrous bug in the parser. Test with data/90.Petersen.dot.
+	- Add README.
+	- Rename scripts/generate.demo.pl to scripts/generate.index.pl, since it does not run all demos,
+		it just creates html/index.html.
+	- Add FAQ item in GraphViz2::Marpa about how to re-create demo files.
+
 1.02  Fri Jun 22 11:50:00 2012
 	- Patch the regexp in the DFA used to recognize HTML-style labels. It's smarter now.
 	- Patch the default renderer to not add double-quote delimiters when outputting HTML-style labels.
