@@ -13,11 +13,13 @@ use Log::Handler;
 fieldhash my %description  => 'description';
 fieldhash my %input_file   => 'input_file';
 fieldhash my %lexed_file   => 'lexed_file';
+fieldhash my %lexer        => 'lexer';
 fieldhash my %logger       => 'logger';
 fieldhash my %maxlevel     => 'maxlevel';
 fieldhash my %minlevel     => 'minlevel';
 fieldhash my %output_file  => 'output_file';
 fieldhash my %parsed_file  => 'parsed_file';
+fieldhash my %parser       => 'parser';
 fieldhash my %renderer     => 'renderer';
 fieldhash my %report_items => 'report_items';
 fieldhash my %report_stt   => 'report_stt';
@@ -25,27 +27,29 @@ fieldhash my %stt_file     => 'stt_file';
 fieldhash my %timeout      => 'timeout';
 fieldhash my %type         => 'type';
 
-our $VERSION = '1.04';
+our $VERSION = '1.05';
 
 # --------------------------------------------------
 
 sub _init
 {
 	my($self, $arg)     = @_;
-	$$arg{description}  ||= '';       # Caller can set.
-	$$arg{input_file}   ||= '';       # Caller can set.
-	$$arg{lexed_file}   ||= '';       # Caller can set.
+	$$arg{description}  ||= ''; # Caller can set.
+	$$arg{input_file}   ||= ''; # Caller can set.
+	$$arg{lexed_file}   ||= ''; # Caller can set.
+	$$arg{lexer}        = '';
 	$$arg{logger}       = defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
 	$$arg{maxlevel}     ||= 'notice'; # Caller can set.
 	$$arg{minlevel}     ||= 'error';  # Caller can set.
 	$$arg{output_file}  ||= '';       # Caller can set.
 	$$arg{parsed_file}  ||= '';       # Caller can set.
+	$$arg{parser}       = '';
 	$$arg{renderer}     ||= '';       # Caller can set.
 	$$arg{report_items} ||= 0;        # Caller can set.
 	$$arg{report_stt}   ||= 0;        # Caller can set.
-	$$arg{stt_file}     ||= ''; # Caller can set.
-	$$arg{timeout}      ||= 10; # Caller can set.
-	$$arg{type}         ||= ''; # Caller can set.
+	$$arg{stt_file}     ||= '';       # Caller can set.
+	$$arg{timeout}      ||= 10;       # Caller can set.
+	$$arg{type}         ||= '';       # Caller can set.
 	$self               = from_hash($self, $arg);
 
 	if (! defined $self -> logger)
@@ -71,6 +75,8 @@ sub _init
 sub log
 {
 	my($self, $level, $s) = @_;
+	$level ||= 'debug';
+	$s     ||= '';
 
 	$self -> logger -> $level($s);
 
@@ -93,7 +99,9 @@ sub new
 sub run
 {
 	my($self)  = @_;
-	my($lexer) = GraphViz2::Marpa::Lexer -> new
+
+	$self -> lexer
+	(GraphViz2::Marpa::Lexer -> new
 		(
 		 description  => $self -> description,
 		 input_file   => $self -> input_file,
@@ -106,15 +114,17 @@ sub run
 		 stt_file     => $self -> stt_file,
 		 timeout      => $self -> timeout,
 		 type         => $self -> type,
-		);
+		)
+	);
 
 	# Return 0 for success and 1 for failure.
 
-	my($result) = $lexer -> run;
+	my($result) = $self -> lexer -> run;
 
 	if ($result == 0)
 	{
-		$result = GraphViz2::Marpa::Parser -> new
+		$self -> parser
+		(GraphViz2::Marpa::Parser -> new
 			(
 			 lexed_file   => $self -> lexed_file,
 			 logger       => $self -> logger,
@@ -124,8 +134,11 @@ sub run
 			 parsed_file  => $self -> parsed_file,
 			 renderer     => $self -> renderer,
 			 report_items => $self -> report_items,
-			 tokens       => $lexer -> items,
-			) -> run;
+			 tokens       => $self -> lexer -> items,
+			)
+		);
+
+		$result = $self -> parser -> run;
 	}
 	else
 	{
@@ -160,25 +173,25 @@ GraphViz2::Marpa - A Perl lexer and parser for Graphviz dot files
 
 =item o Run the lexer
 
-	perl scripts/lex.pl -i x.dot -l x.lex
+	perl scripts/lex.pl -input_file x.gv -lexed_file x.lex
 
-	x.dot is a Graphviz dot file. x.lex will be a CSV file of lexed tokens.
+	x.gv is a Graphviz dot file. x.lex will be a CSV file of lexed tokens.
 
 =item o Run the parser without running the lexer or the default renderer
 
-	perl scripts/parse.pl -l x.lex -p x.parse
+	perl scripts/parse.pl -lexed_file x.lex -parsed_file x.parse
 
 	x.parse will be a CSV file of parsed tokens.
 
 =item o Run the parser and the default renderer
 
-	perl scripts/parse.pl -l x.lex -p x.parse -o x.rend
+	perl scripts/parse.pl -lexed_file x.lex -parsed_file x.parse -output_file x.rend
 
 	x.rend will be a Graphviz dot file.
 
 =item o Run the lexer, parser and default renderer
 
-	perl scripts/g2m.pl -i x.dot -l x.lex -p x.parse -o x.rend
+	perl scripts/g2m.pl -input_file x.gv -lexed_file x.lex -parsed_file x.parse -output_file x.rend
 
 =back
 
@@ -196,7 +209,7 @@ State Transition Table: L<http://savage.net.au/Perl-modules/html/graphviz2.marpa
 
 Command line options and object attributes: L<http://savage.net.au/Perl-modules/html/graphviz2.marpa/code.attributes.html>.
 
-My article on this set of modules: L<http://savage.net.au/Ron/html/graphviz2.marpa/Lexing.and.Parsing.with.Marpa.html>.
+My article on this set of modules: L<http://www.perl.com/pub/2012/10/an-overview-of-lexing-and-parsing.html>.
 
 The Marpa grammar as an image: L<http://savage.net.au/Ron/html/graphviz2.marpa/Marpa.Grammar.svg>. This image was created
 with L<Graphviz|http://www.graphviz.org/> via L<GraphViz2>.
@@ -249,15 +262,15 @@ Auxiliary code.
 
 =over 4
 
-=item o Input files: data/*.dot
+=item o Input files: data/*.gv
 
 These are L<Graphviz|http://www.graphviz.org/> (dot) graph definition files.
 
-Note 1: Some data/*.dot files contain I<serious> deliberate mistakes (from the point of view of L<Graphviz|http://www.graphviz.org/>), but they helped with writing the code.
+Note 1: Some data/*.gv files contain I<serious> deliberate mistakes (from the point of view of L<Graphviz|http://www.graphviz.org/>), but they helped with writing the code.
 
-Specifically, they are data/(01, 02, 03, 04, 05, 06, 08).dot. Natually, they do not produce output files data/*.lex, data/*.parse, data/*.rend or html/*.svg.
+Specifically, they are data/(01, 02, 03, 04, 05, 06, 08).gv. Natually, they do not produce output files data/*.lex, data/*.parse, data/*.rend or html/*.svg.
 
-Note 2: Some data/*.dot files contain I<slight> deliberate mistakes, which do not stop production of output files. They do, however, cause various warning messages to be printed
+Note 2: Some data/*.gv files contain I<slight> deliberate mistakes, which do not stop production of output files. They do, however, cause various warning messages to be printed
 when certain scripts are run.
 
 =item o Output files: data/*.lex, data/*.parse, data/*.rend and html/*.svg
@@ -272,7 +285,7 @@ The html/*.svg files are output by 'dot'.
 
 =item o Data for the State Transition Table
 
-See data/default.stt.ods (LibreOffice), data/default.stt.csv (CSV file) and data/default.stt.html.
+See data/default.stt.ods (LibreOffice), data/default.stt.csv (CSV file) and html/default.stt.html.
 
 Also, data/default.stt.csv has been incorporated into the source code of L<GraphViz2::Marpa::Lexer>.
 
@@ -298,11 +311,11 @@ Convert data/code.attributes.csv to data/code.attributes.html.
 
 =item o dot2lex.pl
 
-Convert all data/*.dot files to data/*.lex using lex.pl.
+Convert all data/*.gv files to data/*.lex using lex.pl.
 
 =item o dot2rend.pl
 
-Convert all data/*.dot files to data/*.lex and data/*.parse and data/*.rend using lex.pl and parse.pl.
+Convert all data/*.gv files to data/*.lex and data/*.parse and data/*.rend using lex.pl and parse.pl.
 
 =item o g2m.pl
 
@@ -310,7 +323,7 @@ Run the lexer, and then run the parser on the output of the lexer. Try running w
 
 =item o generate.index.pl
 
-Generates html/index.html from data/*.dot and html/*.svg.
+Generates html/index.html from data/*.gv and html/*.svg.
 
 =item o lex2parse.pl
 
@@ -346,7 +359,7 @@ Run the default renderer.
 
 =item o stt2html.pl
 
-Convert data/default.stt.csv to data/default.stt.html.
+Convert data/default.stt.csv to html/default.stt.html.
 
 =back
 
@@ -416,7 +429,7 @@ The 'description' option takes precedence over the 'input_file' option.
 
 Default: ''.
 
-See the distro for data/*.dot.
+See the distro for data/*.gv.
 
 =item o lexed_file => $aLexedOutputFileName
 
@@ -677,6 +690,30 @@ Get or set the value which determines what type of 'stt_file' is read.
 
 =head1 FAQ
 
+=head2 Why do I get error messages like the following?
+
+	Error: <stdin>:1: syntax error near line 1
+	context: digraph >>>  Graph <<<  {
+
+Graphviz reserves some words as keywords, meaning they can't be used as an ID, e.g. for the name of the graph.
+So, don't do this:
+
+	strict graph graph{...}
+	strict graph Graph{...}
+	strict graph strict{...}
+	etc...
+
+Likewise for non-strict graphs, and digraphs. You can however add double-quotes around such reserved words:
+
+	strict graph "graph"{...}
+
+Even better, use a more meaningful name for your graph...
+
+The keywords are: node, edge, graph, digraph, subgraph and strict. Compass points are not keywords.
+
+See L<keywords|http://www.graphviz.org/content/dot-language> in the discussion of the syntax of DOT
+for details.
+
 =head2 Does this package support Unicode in the input dot file?
 
 No. Sorry. Not yet.
@@ -692,13 +729,13 @@ Then, run the tests which ship with this module. I've tried this, and the tests 
 	shell> cd GraphViz2-Marpa-1.00/
 	shell> prove -Ilib -v t
 
-=head2 If I input x.dot and output x.rend, should these 2 files be identical?
+=head2 If I input x.gv and output x.rend, should these 2 files be identical?
 
 Yes - at least in the sense that running dot with them as input will produce the same output files. This is using the default renderer, of course.
 
-Since comments in *.dot files are discarded, they can never be in the output files (*.lex, *.parse and *.rend).
+Since comments in *.gv files are discarded, they can never be in the output files (*.lex, *.parse and *.rend).
 
-So, if x.dot is formatted as I do, then x.rend will be formatted identically.
+So, if x.gv is formatted as I do, then x.rend will be formatted identically.
 
 =head2 Why does the report_items option output 2 copies of the tokens?
 
@@ -706,15 +743,19 @@ Because the 1st copy is printed by the lexer and the 2nd by the parser.
 
 =head2 How are the demo files generated?
 
-Run these scripts:
+I run:
+
+	shell> scripts/generate.demo.sh
+
+Which runs these:
 
 	shell> perl scripts/dot2rend.pl
 	shell> perl scripts/rend2svg.pl
 	shell> perl scripts/generate.index.pl
 
-Then copy html/index.html and html/*.svg to the web server's doc root.
+And copies the demo files to my dev machine's doc root:
 
-In my case, I copy them to $doc_root/Perl-modules/html/graphviz2.marpa/.
+	shell> cp html/*.html html/*.svg $DR/Perl-modules/html/graphviz2.marpa/
 
 =head1 Machine-Readable Change Log
 

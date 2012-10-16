@@ -22,7 +22,7 @@ fieldhash my %parsed_file   => 'parsed_file';
 fieldhash my %tokens        => 'tokens';
 fieldhash my %utils         => 'utils';
 
-our $VERSION = '1.04';
+our $VERSION = '1.05';
 
 # --------------------------------------------------
 
@@ -251,6 +251,7 @@ sub run
 			when ('end_attribute')   {$self -> format_attributes([@attributes]);}
 			when ('open_brace')      {$self -> new_item('{', 1, 0, 0);}
 			when ('close_brace')     {$self -> new_item('}', 1, 0, 0);}
+			when ('class_id')        {$self -> new_id($last_type, $type, $value);}
 			when ('edge_id')         {$self -> new_id($last_type, $type, $value);}
 			when ('node_id')         {$self -> new_id($last_type, $type, $value);}
 			when ('colon')           {$self -> new_item($value, 0, 1, 0);}
@@ -307,7 +308,7 @@ State Transition Table: L<http://savage.net.au/Perl-modules/html/graphviz2.marpa
 
 Command line options and object attributes: L<http://savage.net.au/Perl-modules/html/graphviz2.marpa/code.attributes.html>.
 
-My article on this set of modules: L<http://savage.net.au/Ron/html/graphviz2.marpa/Lexing.and.Parsing.with.Marpa.html>.
+My article on this set of modules: L<http://www.perl.com/pub/2012/10/an-overview-of-lexing-and-parsing.html>.
 
 The Marpa grammar as an image: L<http://savage.net.au/Ron/html/graphviz2.marpa/Marpa.Grammar.svg>. This image was created
 with L<Graphviz|http://www.graphviz.org/> via L<GraphViz2>.
@@ -509,13 +510,14 @@ Default: A object of type L<GraphViz2::Marpa::Utils>.
 
 =head1 FAQ
 
-=head2 If I input x.dot and output x.rend, should these 2 files be identical?
+=head2 If I input x.gv and output x.rend, should these 2 files be identical?
 
-Yes - at least in the sense that running dot with them as input will produce the same output files. This is using the default renderer, of course.
+Yes - at least in the sense that running dot with them as input will produce the same output files.
+This is using the default renderer, of course.
 
-Since comments in *.dot files are discarded, they can never be in the output files (*.lex, *.parse and *.rend).
+Since comments in *.gv files are discarded, they can never be in the output files (*.lex, *.parse and *.rend).
 
-So, if x.dot is formatted as I do, then x.rend will be formatted identically.
+So, if x.gv is formatted as I do, then x.rend will be formatted identically.
 
 =head1 Machine-Readable Change Log
 

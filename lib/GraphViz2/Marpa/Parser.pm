@@ -36,7 +36,7 @@ fieldhash my %utils        => 'utils';
 # $myself is a copy of $self for use by functions called by Marpa.
 
 our $myself;
-our $VERSION = '1.04';
+our $VERSION = '1.05';
 
 # --------------------------------------------------
 # This is a function, not a method.
@@ -63,6 +63,19 @@ sub attribute_value
 	return $t1;
 
 } # End of attribute_value.
+
+# --------------------------------------------------
+# This is a function, not a method.
+
+sub class_id
+{
+	my($stash, $t1, undef, $t2)  = @_;
+
+	$myself -> new_item('class_id', $t1);
+
+	return $t1;
+
+} # End of class_id.
 
 # --------------------------------------------------
 # This is a function, not a method.
@@ -188,6 +201,7 @@ sub grammar
 		{
 			attribute_id    => {terminal => 1},
 			attribute_value => {terminal => 1},
+			class_id        => {terminal => 1},
 			close_brace     => {terminal => 1},
 			close_bracket   => {terminal => 1},
 			colon           => {terminal => 1},
@@ -302,20 +316,29 @@ sub grammar
 				 rhs => [qw/start_graph graph_sequence_list end_graph/],
 			 },
 			 {
-				 lhs => 'node_statement', # 1 of 4.
+				 lhs => 'node_statement', # 1 of 5.
+				 rhs => [qw/class_item/],
+			 },
+			 {
+				 lhs => 'node_statement', # 2 of 5.
 				 rhs => [qw/node_item/],
 			 },
 			 {
-				 lhs => 'node_statement', # 2 of 4.
+				 lhs => 'node_statement', # 3 of 5.
 				 rhs => [qw/node_item colon_item port_item/],
 			 },
 			 {
-				 lhs => 'node_statement', # 3 of 4.
+				 lhs => 'node_statement', # 4 of 5.
 				 rhs => [qw/node_item colon_item port_item colon_item compass_item/],
 			 },
 			 {
-				 lhs => 'node_statement', # 4 of 4.
+				 lhs => 'node_statement', # 5 of 5.
 				 rhs => [qw/node_item colon_item compass_item/],
+			 },
+			 {
+				 lhs    => 'class_item',
+				 rhs    => [qw/class_id/],
+				 action => 'class_id',
 			 },
 			 {
 				 lhs    => 'node_item',
@@ -773,25 +796,25 @@ L<GraphViz2::Marpa::Parser> - A Perl parser for Graphviz dot files. Input comes 
 
 =item o Run the lexer
 
-	perl scripts/lex.pl -i x.dot -l x.lex
+	perl scripts/lex.pl -input_file x.gv -lexed_file x.lex
 
-	x.dot is a Graphviz dot file. x.lex will be a CSV file of lexed tokens.
+	x.gv is a Graphviz dot file. x.lex will be a CSV file of lexed tokens.
 
 =item o Run the parser without running the lexer or the default renderer
 
-	perl scripts/parse.pl -l x.lex -p x.parse
+	perl scripts/parse.pl -lexed_file x.lex -parsed_file x.parse
 
 	x.parse will be a CSV file of parsed tokens.
 
 =item o Run the parser and the default renderer
 
-	perl scripts/parse.pl -l x.lex -p x.parse -o x.rend
+	perl scripts/parse.pl -lexed_file x.lex -parsed_file x.parse -output_file x.rend
 
 	x.rend will be a Graphviz dot file.
 
 =item o Run the lexer, parser and default renderer
 
-	perl scripts/g2m.pl -i x.dot -l x.lex -p x.parse -o x.rend
+	perl scripts/g2m.pl -input_file x.gv -lexed_file x.lex -parsed_file x.parse -output_file x.rend
 
 =back
 
@@ -807,7 +830,7 @@ State Transition Table: L<http://savage.net.au/Perl-modules/html/graphviz2.marpa
 
 Command line options and object attributes: L<http://savage.net.au/Perl-modules/html/graphviz2.marpa/code.attributes.html>.
 
-My article on this set of modules: L<http://savage.net.au/Ron/html/graphviz2.marpa/Lexing.and.Parsing.with.Marpa.html>.
+My article on this set of modules: L<http://www.perl.com/pub/2012/10/an-overview-of-lexing-and-parsing.html>.
 
 The Marpa grammar as an image: L<http://savage.net.au/Ron/html/graphviz2.marpa/Marpa.Grammar.svg>. This image was created
 with L<Graphviz|http://www.graphviz.org/> via L<GraphViz2>.
@@ -1124,6 +1147,19 @@ $type => $value pairs used by the parser are listed here in alphabetical order b
 =item o attribute_id => $id
 
 =item o attribute_value => $value
+
+=item o class_id => /^edge|graph|node$/
+
+This represents 3 special tokens where the author of the dot file used one or more of the 3 words
+edge, graph, or node, to specify attributes which apply to all such cases. So:
+
+	node [shape = Msquare]
+
+means all nodes after this point in the input stream default to having a square shape. Of course this
+can be overidden by another such line, or by any specific node having a shape as part of its list of
+attributes.
+
+See data/51.* for sample code.
 
 =item o colon => ':'
 

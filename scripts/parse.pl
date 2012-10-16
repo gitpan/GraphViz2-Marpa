@@ -105,7 +105,7 @@ The default means the file is not written.
 
 =item -parsed_file aParsedOutputFileName
 
-Specify the name of a CSV file of parsed tokens to read.
+Specify the name of a CSV file of parsed tokens to write.
 
 See the distro for data/*.parse.
 

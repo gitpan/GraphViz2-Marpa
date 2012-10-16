@@ -37,7 +37,7 @@ fieldhash my %timeout      => 'timeout';
 fieldhash my %type         => 'type';
 fieldhash my %utils        => 'utils';
 
-our $VERSION = '1.04';
+our $VERSION = '1.05';
 
 # --------------------------------------------------
 
@@ -259,7 +259,7 @@ sub get_graph_from_file
 	my($self) = @_;
 	my(@line) = grep{$_ !~ m!^\s*(?:#|//)!} slurp($self -> input_file, {chomp => 1});
 
-	$self -> graph_text(join('', @line) );
+	$self -> graph_text(join(' ', @line) );
 
 } # End of get_graph_from_file.
 
@@ -586,25 +586,25 @@ L<GraphViz2::Marpa::Lexer> - A Perl lexer for Graphviz dot files. Output goes to
 
 =item o Run the lexer
 
-	perl scripts/lex.pl -i x.dot -l x.lex
+	perl scripts/lex.pl -input_file x.gv -lexed_file x.lex
 
-	x.dot is a Graphviz dot file. x.lex will be a CSV file of lexed tokens.
+	x.gv is a Graphviz dot file. x.lex will be a CSV file of lexed tokens.
 
 =item o Run the parser without running the lexer or the default renderer
 
-	perl scripts/parse.pl -l x.lex -p x.parse
+	perl scripts/parse.pl -lexed_file x.lex -parsed_file x.parse
 
 	x.parse will be a CSV file of parsed tokens.
 
 =item o Run the parser and the default renderer
 
-	perl scripts/parse.pl -l x.lex -p x.parse -o x.rend
+	perl scripts/parse.pl -lexed_file x.lex -parsed_file x.parse -output_file x.rend
 
 	x.rend will be a Graphviz dot file.
 
 =item o Run the lexer, parser and default renderer
 
-	perl scripts/g2m.pl -i x.dot -l x.lex -p x.parse -o x.rend
+	perl scripts/g2m.pl -input_file x.gv -lexed_file x.lex -parsed_file x.parse -output_file x.rend
 
 =back
 
@@ -620,7 +620,7 @@ State Transition Table: L<http://savage.net.au/Perl-modules/html/graphviz2.marpa
 
 Command line options and object attributes: L<http://savage.net.au/Perl-modules/html/graphviz2.marpa/code.attributes.html>.
 
-My article on this set of modules: L<http://savage.net.au/Ron/html/graphviz2.marpa/Lexing.and.Parsing.with.Marpa.html>.
+My article on this set of modules: L<http://www.perl.com/pub/2012/10/an-overview-of-lexing-and-parsing.html>.
 
 The Marpa grammar as an image: L<http://savage.net.au/Ron/html/graphviz2.marpa/Marpa.Grammar.svg>. This image was created
 with L<Graphviz|http://www.graphviz.org/> via L<GraphViz2>.
@@ -684,7 +684,7 @@ The 'description' option takes precedence over the 'input_file' option.
 
 Default: ''.
 
-See the distro for data/*.dot.
+See the distro for data/*.gv.
 
 =item o lexed_file => $aLexedOutputFileName
 
@@ -777,8 +777,6 @@ It also means that dot identifiers in (normal) double-quotes will never match th
 
 =head2 description([$graph])
 
-'description' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 The [] indicate an optional parameter.
 
 Get or set the L<Graphviz|http://www.graphviz.org/> (dot) graph definition.
@@ -786,6 +784,8 @@ Get or set the L<Graphviz|http://www.graphviz.org/> (dot) graph definition.
 The value supplied by the 'description' option takes precedence over the value read from the 'input_file'.
 
 See also L</input_file()>.
+
+'description' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head2 generate_lexed_file($file_name)
 
@@ -815,8 +815,6 @@ Called by L</get_graph_from_command_line()> and L</get_graph_from_file()>.
 
 =head2 input_file([$graph_file_name])
 
-'input_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 Here, the [] indicate an optional parameter.
 
 Get or set the name of the file to read the L<Graphviz|http://www.graphviz.org/> (dot) graph definition from.
@@ -824,6 +822,8 @@ Get or set the name of the file to read the L<Graphviz|http://www.graphviz.org/>
 The value supplied by the 'description' option takes precedence over the value read from the 'input_file'.
 
 See also the L</description()> method.
+
+'input_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head2 items()
 
@@ -1009,7 +1009,7 @@ I use data/default.stt.ods via LibreOffice, when editing the STT.
 
 Then, I export it to data/default.stt.csv. This file is incorporated into the source code of Lexer.pm, after the __DATA__ token.
 
-Lastly, I run scripts/stt2html.pl, and output the result to data/default.stt.html.
+Lastly, I run scripts/stt2html.pl, and output the result to html/default.stt.html.
 
 So I ship 3 representations of the STT in the distro.
 
@@ -1044,6 +1044,19 @@ $type => $value pairs used by the lexer are listed here in alphabetical order by
 =item o attribute_id => $id
 
 =item o attribute_value => $value
+
+=item o class_id => /^edge|graph|node$/
+
+This represents 3 special tokens where the author of the dot file used one or more of the 3 words
+edge, graph, or node, to specify attributes which apply to all such cases. So:
+
+	node [shape = Msquare]
+
+means all nodes after this point in the input stream default to having a square shape. Of course this
+can be overidden by another such line, or by any specific node having a shape as part of its list of
+attributes.
+
+See data/51.* for sample code.
 
 =item o close_brace => $brace_count
 
@@ -1111,7 +1124,7 @@ $subgraph_count increments by 1 each time 'subgraph' is detected in the input st
 
 =back
 
-Consult data/*.dot and the corresponding data/*.lex for many examples.
+Consult data/*.gv and the corresponding data/*.lex for many examples.
 
 =head2 How does the lexer handle comments?
 
@@ -1141,7 +1154,7 @@ Simply that Bash and C++-style comments appearing on the ends of lines containin
 
 =item o Since comments are discarded, they will never appear in the output
 
-This means that no output file, e.g. *.lex, *.parse or *.rend, will ever retain comments from the input *.dot file.
+This means that no output file, e.g. *.lex, *.parse or *.rend, will ever retain comments from the input *.gv file.
 
 =item o Are there any dot files the lexer or parser cannot handle?
 
