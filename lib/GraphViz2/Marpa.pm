@@ -10,47 +10,49 @@ use Hash::FieldHash ':all';
 
 use Log::Handler;
 
-fieldhash my %description  => 'description';
-fieldhash my %input_file   => 'input_file';
-fieldhash my %lexed_file   => 'lexed_file';
-fieldhash my %lexer        => 'lexer';
-fieldhash my %logger       => 'logger';
-fieldhash my %maxlevel     => 'maxlevel';
-fieldhash my %minlevel     => 'minlevel';
-fieldhash my %output_file  => 'output_file';
-fieldhash my %parsed_file  => 'parsed_file';
-fieldhash my %parser       => 'parser';
-fieldhash my %renderer     => 'renderer';
-fieldhash my %report_items => 'report_items';
-fieldhash my %report_stt   => 'report_stt';
-fieldhash my %stt_file     => 'stt_file';
-fieldhash my %timeout      => 'timeout';
-fieldhash my %type         => 'type';
+fieldhash my %description   => 'description';
+fieldhash my %input_file    => 'input_file';
+fieldhash my %lexed_file    => 'lexed_file';
+fieldhash my %lexer         => 'lexer';
+fieldhash my %logger        => 'logger';
+fieldhash my %maxlevel      => 'maxlevel';
+fieldhash my %minlevel      => 'minlevel';
+fieldhash my %output_file   => 'output_file';
+fieldhash my %parsed_file   => 'parsed_file';
+fieldhash my %parser        => 'parser';
+fieldhash my %renderer      => 'renderer';
+fieldhash my %report_forest => 'report_forest';
+fieldhash my %report_items  => 'report_items';
+fieldhash my %report_stt    => 'report_stt';
+fieldhash my %stt_file      => 'stt_file';
+fieldhash my %timeout       => 'timeout';
+fieldhash my %type          => 'type';
 
-our $VERSION = '1.05';
+our $VERSION = '1.06';
 
 # --------------------------------------------------
 
 sub _init
 {
-	my($self, $arg)     = @_;
-	$$arg{description}  ||= ''; # Caller can set.
-	$$arg{input_file}   ||= ''; # Caller can set.
-	$$arg{lexed_file}   ||= ''; # Caller can set.
-	$$arg{lexer}        = '';
-	$$arg{logger}       = defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
-	$$arg{maxlevel}     ||= 'notice'; # Caller can set.
-	$$arg{minlevel}     ||= 'error';  # Caller can set.
-	$$arg{output_file}  ||= '';       # Caller can set.
-	$$arg{parsed_file}  ||= '';       # Caller can set.
-	$$arg{parser}       = '';
-	$$arg{renderer}     ||= '';       # Caller can set.
-	$$arg{report_items} ||= 0;        # Caller can set.
-	$$arg{report_stt}   ||= 0;        # Caller can set.
-	$$arg{stt_file}     ||= '';       # Caller can set.
-	$$arg{timeout}      ||= 10;       # Caller can set.
-	$$arg{type}         ||= '';       # Caller can set.
-	$self               = from_hash($self, $arg);
+	my($self, $arg)      = @_;
+	$$arg{description}   ||= ''; # Caller can set.
+	$$arg{input_file}    ||= ''; # Caller can set.
+	$$arg{lexed_file}    ||= ''; # Caller can set.
+	$$arg{lexer}         = '';
+	$$arg{logger}        = defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
+	$$arg{maxlevel}      ||= 'notice'; # Caller can set.
+	$$arg{minlevel}      ||= 'error';  # Caller can set.
+	$$arg{output_file}   ||= '';       # Caller can set.
+	$$arg{parsed_file}   ||= '';       # Caller can set.
+	$$arg{parser}        = '';
+	$$arg{renderer}      ||= '';       # Caller can set.
+	$$arg{report_forest} ||= 0;        # Caller can set.
+	$$arg{report_items}  ||= 0;        # Caller can set.
+	$$arg{report_stt}    ||= 0;        # Caller can set.
+	$$arg{stt_file}      ||= '';       # Caller can set.
+	$$arg{timeout}       ||= 10;       # Caller can set.
+	$$arg{type}          ||= '';       # Caller can set.
+	$self                = from_hash($self, $arg);
 
 	if (! defined $self -> logger)
 	{
@@ -126,15 +128,16 @@ sub run
 		$self -> parser
 		(GraphViz2::Marpa::Parser -> new
 			(
-			 lexed_file   => $self -> lexed_file,
-			 logger       => $self -> logger,
-			 maxlevel     => $self -> maxlevel,
-			 minlevel     => $self -> minlevel,
-			 output_file  => $self -> output_file,
-			 parsed_file  => $self -> parsed_file,
-			 renderer     => $self -> renderer,
-			 report_items => $self -> report_items,
-			 tokens       => $self -> lexer -> items,
+			 lexed_file    => $self -> lexed_file,
+			 logger        => $self -> logger,
+			 maxlevel      => $self -> maxlevel,
+			 minlevel      => $self -> minlevel,
+			 output_file   => $self -> output_file,
+			 parsed_file   => $self -> parsed_file,
+			 renderer      => $self -> renderer,
+			 report_items  => $self -> report_items,
+			 report_forest => $self -> report_forest,
+			 tokens        => $self -> lexer -> items,
 			)
 		);
 
@@ -205,7 +208,7 @@ Both the lexer and the parser must be run to parse the dot file. See L</Scripts>
 
 Demo lexer/parser output: L<http://savage.net.au/Perl-modules/html/graphviz2.marpa/index.html>.
 
-State Transition Table: L<http://savage.net.au/Perl-modules/html/graphviz2.marpa/default.stt.html>.
+State Transition Table: L<http://savage.net.au/Perl-modules/html/graphviz2.marpa/stt.html>.
 
 Command line options and object attributes: L<http://savage.net.au/Perl-modules/html/graphviz2.marpa/code.attributes.html>.
 
@@ -285,15 +288,15 @@ The html/*.svg files are output by 'dot'.
 
 =item o Data for the State Transition Table
 
-See data/default.stt.ods (LibreOffice), data/default.stt.csv (CSV file) and html/default.stt.html.
+See data/stt.csv (CSV file) and html/stt.html.
 
-Also, data/default.stt.csv has been incorporated into the source code of L<GraphViz2::Marpa::Lexer>.
+Also, data/stt.csv has been incorporated into the source code of L<GraphViz2::Marpa::Lexer>.
 
 The CSV file was converted to HTML with scripts/stt2html.pl.
 
 =item o Documentation for the command line options and object attributes
 
-See data/code.attributes.ods (LibreOffice), data/code.attributes.csv (CSV file) and data/code.attributes.html.
+See data/code.attributes.csv (CSV file) and data/code.attributes.html.
 
 The CSV file was converted to HTML with scripts/code.attributes2html.pl.
 
@@ -321,9 +324,37 @@ Convert all data/*.gv files to data/*.lex and data/*.parse and data/*.rend using
 
 Run the lexer, and then run the parser on the output of the lexer. Try running with -h.
 
+=item o g2m.sh
+
+Simplifies running g2m.pl.
+
+=item o generate.demo.sh
+
+Runs dot2rend.pl, rend2svg.pl and generate.index.pl.
+
+Then runs code.attributes2html.pl and stt2html.pl.
+
+Then it copies html/*.html and html/*.svg to my web server's doc root, $DR/Perl-modules/html/graphviz2.marpa/.
+
 =item o generate.index.pl
 
 Generates html/index.html from data/*.gv and html/*.svg.
+
+=item o lex.1.sh
+
+Simplifies running lex.sh.
+
+=item o lex.parse.sh
+
+Simplifies running g2m.sh, and ensures the *.svg version of the tested data file is up-to-date.
+
+=item o lex.pl
+
+Run the lexer. Try running with -h.
+
+=item o lex.sh
+
+Simplifies running lex.pl.
 
 =item o lex2parse.pl
 
@@ -333,33 +364,50 @@ Convert all data/*.lex to data/*.parse using parse.pl.
 
 Convert all data/*.lex to data/*.parse and data/*.rend using parse.pl.
 
-=item o lex.pl
-
-Run the lexer. Try running with -h.
-
 =item o marpa.grammar2svg.pl
 
-I extracted the L<Marpa::XS> grammar from Parser.pm and saved it as data/Marpa.Grammar.dat. The program coverts it into html/Marpa.Grammar.svg.
+I extracted the L<Marpa::XS> grammar from Parser.pm and saved it as data/Marpa.Grammar.dat.
+The program coverts it into html/Marpa.Grammar.svg.
 
-=item o parse2rend.pl
+=item o parse.1.sh
 
-Convert all data/*.parse to data/*.rend using rend.pl.
+Simplifies running parse.sh.
 
 =item o parse.pl
 
 Run the parser. Try running with -h.
 
-=item o rend2svg.pl
+=item o parse.sh
 
-Convert all data/*.rend to html/*.svg using dot.
+Simplifies running parse.pl.
+
+=item o parse2rend.pl
+
+Convert all data/*.parse to data/*.rend using rend.pl.
+
+=item o pod2html.sh
+
+Converts all *.pm files to *.html, and copies them in my web server's dir structure.
+
+=item o rend.1.sh
+
+Simplifies running read.sh.
 
 =item o rend.pl Try running with -h.
 
 Run the default renderer.
 
+=item o rend.sh
+
+Simplifies running rend.pl.
+
+=item o rend2svg.pl
+
+Convert all data/*.rend to html/*.svg using dot.
+
 =item o stt2html.pl
 
-Convert data/default.stt.csv to html/default.stt.html.
+Convert data/stt.csv to html/stt.html.
 
 =back
 
@@ -489,6 +537,12 @@ Specify a renderer for the parser to use.
 
 Default: undef.
 
+=item o report_forest => $Boolean
+
+Log the forest of paths recognised by the parser.
+
+Default: 0.
+
 =item o report_items => $Boolean
 
 Log the items recognised by the lexer.
@@ -511,7 +565,7 @@ Default: ''.
 
 The default value means the STT is read from the source code of L<GraphViz2::Marpa::Lexer>.
 
-Candidate files are '' and 'data/default.stt.csv'.
+Candidate files are '' and 'data/stt.csv'.
 
 The type of this file must be specified by the 'type' option.
 
@@ -544,8 +598,6 @@ It also means that dot identifiers in (normal) double-quotes will never match th
 
 =head2 description([$graph])
 
-'description' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 The [] indicate an optional parameter.
 
 Get or set the L<Graphviz|http://www.graphviz.org/> (dot) graph definition string.
@@ -554,9 +606,9 @@ The value supplied by the 'description' option takes precedence over the value r
 
 See also L</input_file()>.
 
-=head2 input_file([$graph_file_name])
+'description' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'input_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 input_file([$graph_file_name])
 
 Here, the [] indicate an optional parameter.
 
@@ -566,17 +618,17 @@ The value supplied by the 'description' option takes precedence over the value r
 
 See also the L</description()> method.
 
-=head2 lexed_file([$lex_file_name])
+'input_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'lexed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 lexed_file([$lex_file_name])
 
 Here, the [] indicate an optional parameter.
 
 Get or set the name of the CSV file of lexed tokens for the lexer to write. This file can be input to the parser.
 
-=head2 logger([$logger_object])
+'lexed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'logger' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 logger([$logger_object])
 
 Here, the [] indicate an optional parameter.
 
@@ -586,27 +638,29 @@ To disable logging, just set 'logger' to the empty string (not undef), in the ca
 
 This logger is passed to other modules.
 
+'logger' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
 =head2 maxlevel([$string])
+
+Here, the [] indicate an optional parameter.
+
+Get or set the value used by the logger object.
+
+This option is only used if L<GraphViz2::Marpa:::Lexer> or L<GraphViz2::Marpa::Parser>
+use or create an object of type L<Log::Handler>. See L<Log::Handler::Levels>.
 
 'maxlevel' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-Here, the [] indicate an optional parameter.
-
-Get or set the value used by the logger object.
-
-This option is only used if L<GraphViz2::Marpa:::Lexer> or L<GraphViz2::Marpa::Parser>
-use or create an object of type L<Log::Handler>. See L<Log::Handler::Levels>.
-
 =head2 minlevel([$string])
 
-'minlevel' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 Here, the [] indicate an optional parameter.
 
 Get or set the value used by the logger object.
 
 This option is only used if L<GraphViz2::Marpa:::Lexer> or L<GraphViz2::Marpa::Parser>
 use or create an object of type L<Log::Handler>. See L<Log::Handler::Levels>.
+
+'minlevel' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head2 new()
 
@@ -614,23 +668,21 @@ See L</Constructor and Initialization> for details on the parameters accepted by
 
 =head2 output_file([$file_name])
 
-'output_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 Here, the [] indicate an optional parameter.
 
 Get or set the name of the file for the renderer to write.
 
-=head2 parsed_file([$file_name])
+'output_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'parsed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 parsed_file([$file_name])
 
 Here, the [] indicate an optional parameter.
 
 Get or set the name of the file of parsed tokens for the parser to write. This file can be input to the renderer.
 
-=head2 renderer([$renderer_object])
+'parsed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'renderer' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 renderer([$renderer_object])
 
 Here, the [] indicate an optional parameter.
 
@@ -638,21 +690,31 @@ Get or set the renderer object.
 
 This renderer is passed to L<GraphViz2::Marpa::Parser>.
 
-=head2 report_items([$Boolean])
+'renderer' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'report_items' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 report_forest([$Boolean])
+
+The [] indicate an optional parameter.
+
+Get or set the value which determines whether or not to log the forest of paths recognised by the parser.
+
+'report_forest' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
+=head2 report_items([$Boolean])
 
 The [] indicate an optional parameter.
 
 Get or set the value which determines whether or not to log the items recognised by the lexer and parser.
 
-=head2 report_stt([$Boolean])
+'report_items' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'report_stt' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 report_stt([$Boolean])
 
 The [] indicate an optional parameter.
 
 Get or set the value which determines whether or not to log the parsed state transition table (STT).
+
+'report_stt' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head2 run()
 
@@ -662,8 +724,6 @@ Returns 0 for success and 1 for failure.
 
 =head2 stt_file([$stt_file_name])
 
-'stt_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 The [] indicate an optional parameter.
 
 Get or set the name of the file containing the State Transition Table.
@@ -672,23 +732,27 @@ This option is used in conjunction with the 'type' option to L</new()>.
 
 If the file name matches /csv$/, the value of the 'type' option is set to 'csv'.
 
-=head2 timeout($seconds)
+'stt_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'timeout' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 timeout($seconds)
 
 The [] indicate an optional parameter.
 
-Get or set the timeout for how long to run the DFA.
+Get or set the timeout for how long to run the DFA and the Parser.
+
+'timeout' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head2 type([$type])
-
-'type' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 The [] indicate an optional parameter.
 
 Get or set the value which determines what type of 'stt_file' is read.
 
+'type' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
 =head1 FAQ
+
+The lexer and the parser each has an FAQ: L<Lexer|GraphViz2::Marpa::Lexer/FAQ>, and L<Parser|GraphViz2::Marpa::Parser/FAQ>.
 
 =head2 Why do I get error messages like the following?
 
@@ -740,6 +804,10 @@ So, if x.gv is formatted as I do, then x.rend will be formatted identically.
 =head2 Why does the report_items option output 2 copies of the tokens?
 
 Because the 1st copy is printed by the lexer and the 2nd by the parser.
+
+=head2 How are custom graph attributes handled?
+
+They are not handled at all. Sorry. The lexer only supports attributes defined by Graphviz itself.
 
 =head2 How are the demo files generated?
 

@@ -23,7 +23,7 @@ fieldhash my %subgraph_count => 'subgraph_count';
 fieldhash my %verbose        => 'verbose';
 
 our $myself; # Is a copy of $self for functions called by Set::FA::Element.
-our $VERSION = '1.05';
+our $VERSION = '1.06';
 
 # --------------------------------------------------
 
@@ -33,7 +33,7 @@ sub check_end_subgraph
 
 	# We only ever get the with $match eq '}'.
 
-	$self -> new_item('close_brace', $self -> brace_count);
+	$self -> new_item('end_scope', $self -> brace_count);
 	$self -> decrement_brace_count;
 
 	if ($self -> subgraph -> length && ($self -> subgraph -> last == $self -> brace_count) )
@@ -60,14 +60,14 @@ sub _clean_up
 	# strict              , "no"        strict              , "no"
 	# digraph             , "yes"       digraph             , "yes"
 	# graph_id            , "abstract"  graph_id            , "abstract"
-	# open_brace          , "1"         open_brace          , "1"
+	# start_scope         , "1"         start_scope         , "1"
 	# id                  , "size"      attribute_id        , "size"    <=
 	# equals              , "="         equals              , "="
 	# id                  , "6,6"       attribute_value     , "6,6"     <=
 	# id                  , "S24"       id                  , "S24"
 	# edge_id             , "->"        edge_id             , "->"
 	# id                  , "27"        id                  , "27"
-	# close_brace         , "1"         close_brace         , "1"
+	# end_scope           , "1"         end_scope           , "1"
 
 	my(@old_items) = $self -> items -> print;
 
@@ -90,7 +90,7 @@ sub _clean_up
 	# strict              , "no"        strict              , "no"
 	# digraph             , "yes"       digraph             , "yes"
 	# graph_id            , "abstract"  graph_id            , "abstract"
-	# open_brace          , "1"         open_brace          , "1"
+	# start_scope         , "1"         start_scope         , "1"
 	#                                   id                  , "graph"  <=
 	#                                   open_bracket        , "["      <=
 	# attribute_id        , "label"     attribute_id        , "label"
@@ -100,7 +100,7 @@ sub _clean_up
 	# id                  , "node_2"    id                  , "node_2"
 	# edge_id             , "->"        edge_id             , "->"
 	# id                  , "node_2"    id                  , "node_2"
-	# close_brace         , "1"         close_brace         , "1"
+	# end_scope           , "1"         end_scope           , "1"
 
 	my($inside_brackets) = 0;
 	@old_items           = $self -> items -> print;
@@ -155,41 +155,25 @@ sub _clean_up
 	}
 
 	# 3: This graph:
-	# digraph graph_16 {node_16:port_16:c}
-	# lexes as:                         instead of as:
-	# "type","value"                    "type","value"
-	# strict              , "no"        strict              , "no"
-	# digraph             , "yes"       digraph             , "yes"
-	# graph_id            , "graph_16"  graph_id            , "graph_16"
-	# open_brace          , "1"         open_brace          , "1"
-	# id                  , "node_16"   id                  , "node_16"
-	# colon               , ":"         colon               , ":"
-	# node_id             , "port_16"   port_id             , "port_16"  <=
-	#                                   colon               , ":"        <=
-	# compass_point       , "c"         compass_point       , "c"
-	# close_brace         , "1"         close_brace         , "1"
-	#
-	# Warning: Not this loop, but the next, converts the remaining 'id' to 'node_id'.
+	# digraph graph_42_01 {node_42_01 []}
+	# lexes as:                             instead of as:
+	# "type","value"                        "type","value"
+	# strict              , "no"            strict              , "no"
+	# digraph             , "yes"           digraph             , "yes"
+	# graph_id            , "graph_42_01"   graph_id            , "graph_42_01"
+	# start_scope         , "1"             start_scope         , "1"
+	# node_id             , "node_42_01"    node_id             , "node_42_01"
+	# open_bracket        , "["
+	# close_bracket       , "]"
+	# end_scope           , "1"             end_scope           , "1"
 
 	@old_items = ();
 
 	for (my $i = 0; $i < $#new_items; $i++)
 	{
-		if ( ($new_items[$i]{type} eq 'node_id') && ($new_items[$i + 1]{type} eq 'compass_point') )
+		if ( ($new_items[$i]{type} eq 'open_bracket') && ($new_items[$i + 1]{type} eq 'close_bracket') )
 		{
-			push @old_items,
-			{
-				count => 0,
-				name  => '',
-				type  => 'port_id',
-				value => $new_items[$i]{value},
-			},
-			{
-				count => 0,
-				name  => '',
-				type  => 'colon',
-				value => ':',
-			};
+			$i += 1;
 		}
 		else
 		{
@@ -200,85 +184,69 @@ sub _clean_up
 	push @old_items, $new_items[$#new_items];
 
 	# 4: This graph:
-	# digraph graph_17 {node_17:c}
-	# lexes as:                         instead of as:
-	# "type","value"                    "type","value"
-	# strict              , "no"        strict              , "no"
-	# digraph             , "yes"       digraph             , "yes"
-	# graph_id            , "graph_17"  graph_id            , "graph_17"
-	# open_brace          , "1"         open_brace          , "1"
-	# id                  , "node_17"   node_id             , "node_17"  <=
-	# colon               , ":"         colon               , ":"
-	# compass_point       , "c"         compass_point       , "c"
-	# close_brace         , "1"         close_brace         , "1"
-
-	@new_items = ();
-
-	for my $i (0 .. $#old_items - 1)
-	{
-		if ( ($old_items[$i]{type} eq 'id') && ($old_items[$i + 1]{type} eq 'colon') )
-		{
-			$old_items[$i]{type} = 'node_id';
-		}
-
-		push @new_items, $old_items[$i];
-	}
-
-	push @new_items, $old_items[$#old_items];
-
-	# 5: This graph:
-	# digraph graph_42_01 {node_42_01 []}
+	# digraph graph_15 {node_15_1:port_15_1 -> node_15_2:port_15_2 [arrowhead = odot]}
 	# lexes as:                             instead of as:
 	# "type","value"                        "type","value"
 	# strict              , "no"            strict              , "no"
 	# digraph             , "yes"           digraph             , "yes"
-	# graph_id            , "graph_42_01"   graph_id            , "graph_42_01"
-	# open_brace          , "1"             open_brace          , "1"
-	# node_id             , "node_42_01"    node_id             , "node_42_01"
-	# open_bracket        , "["
-	# close_bracket       , "]"
-	# close_brace         , "1"             close_brace         , "1"
-	# The real problem is the Marpa grammar, which I can't get to accept [].
-
-	@old_items = ();
-
-	for (my $i = 0; $i < $#new_items; $i++)
-	{
-		if ( ($new_items[$i]{type} eq 'open_bracket') && ($new_items[$i + 1]{type} eq 'close_bracket') )
-		{
-			$i += 2;
-		}
-		else
-		{
-			push @old_items, $new_items[$i];
-		}
-	}
-
-	push @old_items, $new_items[$#new_items];
-
-	# 6: Convert all 'id's to 'class_id/node_id's. I /think/ this is ok.
+	# graph_id            , "graph_15"      graph_id            , "graph_15"
+	# start_scope         , "1"             start_scope         , "1"
+	# node_id             , "node_15_1"     node_id             , "node_15_1"
+	# open_bracket        , "["             open_bracket        , "["
+	# attribute_id        , "port_id"       attribute_id        , "port_id"
+	# attribute_value     , "port_15_1"     attribute_value     , "port_15_1"
+	# close_bracket       , "]"             close_bracket       , "]"
+	# edge_id             , "->"            edge_id             , "->"
+	# node_id             , "node_15_2"     node_id             , "node_15_2"
+	# open_bracket        , "["             open_bracket        , "["
+	# attribute_id        , "port_id"       attribute_id        , "port_id"
+	# attribute_value     , "port_15_2"     attribute_value     , "port_15_2"
+	# close_bracket       , "]"                                                <=
+	# open_bracket        , "["                                                <=
+	# attribute_id        , "arrowhead"     attribute_id        , "arrowhead"
+	# attribute_value     , "odot"          attribute_value     , "odot"
+	# close_bracket       , "]"             close_bracket       , "]"
+	# end_scope           , "1"             end_scope           , "1"
 
 	@new_items = ();
 
-	for my $i (0 .. $#old_items)
+	for (my $i = 0; $i < $#old_items; $i++)
 	{
-		if ($old_items[$i]{type} eq 'id')
+		if ( ($old_items[$i]{type} eq 'close_bracket') && ($old_items[$i + 1]{type} eq 'open_bracket') )
 		{
-			if ($old_items[$i]{value} =~ /^edge|graph|node$/)
+			$i += 1;
+		}
+		else
+		{
+			push @new_items, $old_items[$i];
+		}
+	}
+
+	push @new_items, $old_items[$#old_items];
+
+	# 5: Convert all 'id's to 'class_id/node_id's. I /think/ this is ok.
+
+	@old_items = ();
+
+	for my $i (0 .. $#new_items)
+	{
+		if ($new_items[$i]{type} eq 'id')
+		{
+			if ($new_items[$i]{value} =~ /^edge|graph|node$/)
 			{
-				$old_items[$i]{type} = 'class_id';
+				$new_items[$i]{type} = 'class_id';
 			}
 			else
 			{
-				$old_items[$i]{type} = 'node_id';
+				$new_items[$i]{type} = 'node_id';
 			}
 		}
 
-		push @new_items, $old_items[$i];
+		push @old_items, $new_items[$i];
 	}
 
 	$self -> items -> clear;
-	$self -> items -> push(@new_items);
+	$self -> items -> push(@old_items);
 	$self -> renumber_items;
 
 } # End of _clean_up.
@@ -628,7 +596,7 @@ sub save_graph_id
 	if ($value eq '{')
 	{
 		$myself -> new_item('graph_id', '');
-		$myself -> new_item('open_brace', $myself -> increment_brace_count);
+		$myself -> new_item('start_scope', $myself -> increment_brace_count);
 	}
 	else
 	{
@@ -656,24 +624,30 @@ sub save_id_1
 		return;
 	}
 
-	my($type);
-
 	if ($value eq 'subgraph')
 	{
-		# Later, this tells us when a close_brace closes a subgraph. See check_end_subgraph().
+		# Later, this tells us when an end_scope closes a subgraph. See check_end_subgraph().
 
 		$myself -> subgraph -> push($myself -> brace_count);
 
-		$value = $myself -> increment_subgraph_count;
-		$type  = 'start_subgraph';
+		$myself -> new_item('start_subgraph', $myself -> increment_subgraph_count);
+	}
+	elsif ($value =~ /^-/)
+	{
+		$myself -> new_item('edge_id', $value);
+	}
+	elsif ($value eq '{')
+	{
+		$myself -> new_item('start_scope', $myself -> increment_brace_count);
+	}
+	elsif ($value eq '[')
+	{
+		$myself -> new_item('open_bracket', $value);
 	}
 	else
 	{
-		$type  = $value =~ /^-/ ? 'edge_id' : $value eq '{' ? 'open_brace' : 'id';
-		$value = $myself -> brace_count if ($type eq 'open_brace');
+		$myself -> new_item('id', $value);
 	}
-
-	$myself -> new_item($type, $value);
 
 } # End of save_id_1.
 
@@ -693,38 +667,52 @@ sub save_id_2
 	}
 	elsif ($value eq 'subgraph')
 	{
-		# Later, this tells us when a close_brace closes a subgraph. See check_end_subgraph().
+		# Later, this tells us when an end_scope closes a subgraph. See check_end_subgraph().
 
 		$myself -> subgraph -> push($myself -> brace_count);
 		$myself -> new_item('start_subgraph', $myself -> increment_subgraph_count);
 	}
 	elsif ($value =~ /^:(.+):(n|ne|se|e|se|s|sw|w|nw|c|_)$/)
 	{
-		# We got a compass point. Output 3 tokens.
+		# We got a port /and/ a compass point. Output 8 tokens.
 
-		$myself -> new_item('colon', ':');
-		$myself -> new_item('node_id', trim($1) );
-		$myself -> new_item('compass_point', trim($2) );
+		$myself -> new_item('open_bracket', '[');
+		$myself -> new_item('attribute_id', 'port_id');
+		$myself -> new_item('equals', '=');
+		$myself -> new_item('attribute_value', trim($1) );
+		$myself -> new_item('attribute_id', 'compass_point');
+		$myself -> new_item('equals', '=');
+		$myself -> new_item('attribute_value', trim($2) );
+		$myself -> new_item('close_bracket', ']');
 	}
 	elsif ($value eq '{')
 	{
-		$myself -> new_item('open_brace', $myself -> increment_brace_count);
+		$myself -> new_item('start_scope', $myself -> increment_brace_count);
+	}
+	elsif ($value =~ /^:(n|ne|se|e|se|s|sw|w|nw|c|_)$/)
+	{
+		# We got a compass point. Output 5 tokens.
+
+		$myself -> new_item('open_bracket', '[');
+		$myself -> new_item('attribute_id', 'compass_point');
+		$myself -> new_item('equals', '=');
+		$myself -> new_item('attribute_value', trim($1) );
+		$myself -> new_item('close_bracket', ']');
+	}
+	elsif ($value =~ /^:(.+)/)
+	{
+		# We got a port id. Output 5 tokens.
+
+		$myself -> new_item('open_bracket', '[');
+		$myself -> new_item('attribute_id', 'port_id');
+		$myself -> new_item('equals', '=');
+		$myself -> new_item('attribute_value', trim($1) );
+		$myself -> new_item('close_bracket', ']');
 	}
 	else
 	{
-		my($type) = $value =~ /^:(?:n|ne|se|e|se|s|sw|w|nw|c|_)$/ ? 'compass_point' : 'id';
-
-		# Handle id_1:id_2. Output ':' to differentiate between this and 'id_1 id_2'.
-
-		if ($value =~ /^:(.+)/)
-		{
-			$type  = 'port_id' if ($type eq 'id');
-			$value = trim($1);
-
-			$myself -> new_item('colon', ':');
-		}
-
-		$type = $value eq '=' ? 'equals' : $value eq '[' ? 'open_bracket' : $value =~ /^-/ ? 'edge_id' : $type;
+		my($type) = 'id';
+		$type     = $value eq '=' ? 'equals' : $value eq '[' ? 'open_bracket' : $value =~ /^-/ ? 'edge_id' : $type;
 
 		$myself -> new_item($type, $value);
 	}
@@ -781,7 +769,7 @@ sub start_statements
 	# We only ever get here (via the STT) with $value eq '{'.
 
 	$myself -> log(debug => "start_statements($value)");
-	$myself -> new_item('open_brace', $myself -> increment_brace_count);
+	$myself -> new_item('start_scope', $myself -> increment_brace_count);
 
 } # End of start_statements.
 
@@ -909,11 +897,11 @@ Default: 0.
 
 =head2 graph_text([$graph])
 
-'graph_text' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 The [] indicate an optional parameter.
 
 Get or set the L<Graphviz|http://www.graphviz.org/> (dot) graph definition.
+
+'graph_text' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head2 items()
 
@@ -966,13 +954,13 @@ See L</Constructor and Initialization> for details on the parameters accepted by
 
 =head2 report_stt([$Boolean])
 
-'report_stt' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 The [] indicate an optional parameter.
 
 Get or set the value which determines whether or not to log the parsed state transition table (STT).
 
 Calls L<Set::FA::Element/report()>. Set min and max log levels to 'info' for this.
+
+'report_stt' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head2 run()
 
@@ -982,27 +970,27 @@ Afterwards, you call L</items()> to retrieve the arrayref of results.
 
 =head2 start([$start_state_name])
 
-'start' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 The [] indicate an optional parameter.
 
 Get or set the name of the state in which the STT starts.
 
-=head2 state([\%state_hashref])
+'start' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'state' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 state([\%state_hashref])
 
 The [] indicate an optional parameter.
 
 Get or set the hashref defining the STT.
 
-=head2 verbose([$Boolean])
+'state' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'verbose' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 verbose([$Boolean])
 
 The [] indicate an optional parameter.
 
 Get or set the verbosity level when calling L<Set::FA::Element>.
+
+'verbose' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head1 Machine-Readable Change Log
 

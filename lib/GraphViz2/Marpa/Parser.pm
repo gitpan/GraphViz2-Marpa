@@ -12,31 +12,39 @@ use IO::File;
 
 use Log::Handler;
 
-use Marpa::XS;
+use Marpa::R2;
 
 use Set::Array;
+
+use Tree::DAG_Node;
 
 use Text::CSV_XS;
 
 use Try::Tiny;
 
-fieldhash my %item_count   => 'item_count';
-fieldhash my %items        => 'items';
-fieldhash my %lexed_file   => 'lexed_file';
-fieldhash my %logger       => 'logger';
-fieldhash my %maxlevel     => 'maxlevel';
-fieldhash my %minlevel     => 'minlevel';
-fieldhash my %output_file  => 'output_file';
-fieldhash my %parsed_file  => 'parsed_file';
-fieldhash my %renderer     => 'renderer';
-fieldhash my %report_items => 'report_items';
-fieldhash my %tokens       => 'tokens';
-fieldhash my %utils        => 'utils';
+fieldhash my %edges            => 'edges';
+fieldhash my %item_count       => 'item_count';
+fieldhash my %items            => 'items';
+fieldhash my %lexed_file       => 'lexed_file';
+fieldhash my %logger           => 'logger';
+fieldhash my %maxlevel         => 'maxlevel';
+fieldhash my %minlevel         => 'minlevel';
+fieldhash my %nodes            => 'nodes';
+fieldhash my %output_file      => 'output_file';
+fieldhash my %parsed_file      => 'parsed_file';
+fieldhash my %paths            => 'paths'; # Reserved.
+fieldhash my %renderer         => 'renderer';
+fieldhash my %report_forest    => 'report_forest';
+fieldhash my %report_items     => 'report_items';
+fieldhash my %style            => 'style';
+fieldhash my %tokens           => 'tokens';
+fieldhash my %type             => 'type';
+fieldhash my %utils            => 'utils';
 
 # $myself is a copy of $self for use by functions called by Marpa.
 
 our $myself;
-our $VERSION = '1.05';
+our $VERSION = '1.06';
 
 # --------------------------------------------------
 # This is a function, not a method.
@@ -63,6 +71,261 @@ sub attribute_value
 	return $t1;
 
 } # End of attribute_value.
+
+# -----------------------------------------------
+
+sub _build_attribute_list
+{
+	my($self, $items, $i) = @_;
+
+	my(%attribute);
+	my($j);
+
+	if ($$items[$i + 1]{type} eq 'start_attribute')
+	{
+		for ($j = $i + 2; ($j <= $#$items) && ($$items[$j]{type} ne 'end_attribute'); $j += 2)
+		{
+			$attribute{$$items[$j]{value} } = $$items[$j + 1]{value};
+		}
+	}
+	else
+	{
+		$j = $i;
+	}
+
+	return ($j, {%attribute});
+
+} # End of _build_attribute_list.
+
+# -----------------------------------------------
+
+sub _build_node
+{
+	my($self, $items, $value, $node, $class_attribute, $attribute, $within_path) = @_;
+
+	$$node{$value}             = $self -> _init_node($$class_attribute{node})                   if (! $$node{$value});
+	$$node{$value}{attributes} = {%{$$node{$value}{attributes} }, %$attribute}                  if (! $within_path);
+	$$node{$value}{attributes} = {%{$$class_attribute{node} }, %{$$node{$value}{attributes} } } if ($$node{$value}{fixed} == 0);
+	$$node{$value}{fixed}      = 1;
+
+} # End of _build_node.
+
+# -----------------------------------------------
+
+sub _build_path_helper
+{
+	my($self)      = @_;
+	my(@ancestors) = map{$_ -> name} $self -> paths -> daughters;
+
+	my(%ancestors);
+
+	@ancestors{@ancestors} = (1) x @ancestors;
+
+	my($attributes);
+	my($name);
+	my(@stack);
+
+	$self -> paths -> walk_down
+	({
+		ancestors => \%ancestors,
+		callback  =>
+		sub
+		{
+			my($node, $options) = @_;
+
+			if ($$options{_depth} > 1)
+			{
+				$attributes = $node -> attributes;
+				$name       = $node -> name;
+
+				if (defined $$options{ancestors}{$name} && ! $$attributes{replaced})
+				{
+					push @{$$options{stack} }, $node;
+				}
+			}
+
+			return 1;
+		},
+		_depth => 0,
+		stack  => \@stack,
+	});
+
+	my($sub_tree) = Tree::DAG_Node -> new;
+
+	my(@kids);
+	my($node);
+	my(%seen);
+
+	for $node (@stack)
+	{
+		$name        = $node -> name;
+		@kids        = grep{$_ -> name eq $name} $self -> paths -> daughters;
+		$seen{$name} = 1;
+
+		$sub_tree -> add_daughters(map{$_ -> copy_at_and_under({no_attribute_copy => 1})} @kids);
+
+		for ($sub_tree -> daughters)
+		{
+			$_ -> attributes({replaced => 1});
+		}
+
+		$node -> replace_with($sub_tree -> daughters);
+	}
+
+	return ({%seen}, $#stack);
+
+} # End of _build_path_helper.
+
+# -----------------------------------------------
+# Output:
+# $self -> paths, which combines all edges in $self -> edges.
+
+sub _build_paths
+{
+	my($self) = @_;
+
+	# Copy the edges tree before fiddling with the copy.
+
+	$self -> paths($self -> edges -> copy_tree({no_attribute_copy => 1}) );
+	$self -> paths -> name('Root');
+
+	my($finished) = 0;
+
+	my(@result);
+	my(%seen);
+
+	while (! $finished)
+	{
+		@result   = $self -> _build_path_helper;
+		$seen{$_} = 1 for keys %{$result[0]};
+		$finished = $result[1] < 0;
+	}
+
+	for my $child ($self -> paths -> daughters)
+	{
+		$self -> paths -> remove_daughter($child) if ($seen{$child -> name});
+	}
+
+} # End of _build_paths.
+
+# -----------------------------------------------
+# Outputs:
+# o $self -> edges, an object of type Tree.
+# o $self -> nodes, a hashref of {node => hashref of attributes}.
+# o $self -> style, a hashref of graph attributes, e.g. rankdir, size.
+# o $self -> type, a hashref of {digraph => $Boolean, graph_id => $string, strict => $Boolan}.
+
+sub _build_tree
+{
+	my($self) = @_;
+
+	# Phase 1: Find class (edge, graph and node) attributes,
+	# and find attributes of individual nodes.
+
+	my(@class)  = qw/edge graph node/;
+	my($i)      = - 1;
+	my($items)  = $self -> items;
+	my($parent) = $self -> edges;
+	my($tipe)   = {};
+
+	my($attribute);
+	my($class_attribute, %class_attribute, $child);
+	my($edge_preceeds, $edge_follows);
+	my($graph_id, $graph_attribute);
+	my(%node);
+	my(%port_attribute);
+	my(@stack);
+	my($type);
+	my($value);
+
+	$class_attribute{$_} = {} for (@class);
+
+	while ($i < $#$items)
+	{
+		$i++;
+
+		$type  = $$items[$i]{type};
+		$value = $$items[$i]{value};
+
+		if ($type eq 'class_id')
+		{
+			($i, $class_attribute)   = $self -> _build_attribute_list($items, $i);
+			$class_attribute{$value} = {%{$class_attribute{$value} }, %$class_attribute};
+		}
+		elsif ($type eq 'digraph')
+		{
+			$$tipe{digraph} = $value eq 'yes' ? 1 : 0;
+		}
+		elsif ($type eq 'edge_id')
+		{
+			# See code for ($type eq 'node_id').
+		}
+		elsif ($type eq 'end_scope')
+		{
+			if ($value > 1)
+			{
+				$class_attribute{$_} = pop @stack for reverse (@class);
+			}
+		}
+		elsif ($type eq 'graph_id')
+		{
+			$$tipe{graph_id} = $value if (! defined $$tipe{graph_id});
+			$graph_id        = $value;
+		}
+		elsif ($type eq 'node_id')
+		{
+			$edge_preceeds   = $self -> _edge_preceeds_node($items, $i - 1);
+			$edge_follows    = $self -> _edge_follows_node($items, $i + 1);
+			($i, $attribute) = $self -> _build_attribute_list($items, $i);
+			%port_attribute  = ();
+
+			for (qw/compass_point port_id/)
+			{
+				$port_attribute{$_} = delete $$attribute{$_} if (defined $$attribute{$_});
+			}
+
+			$self -> _build_node($items, $value, \%node, \%class_attribute, $attribute, $edge_preceeds || $edge_follows);
+
+			if ( ($edge_preceeds) || $edge_follows)
+			{
+				$child = Tree::DAG_Node -> new({name => $value});
+
+				$child -> attributes({%port_attribute});
+				$parent -> add_daughter($child);
+
+				# If the node has a mother, i.e. it's not the root.
+
+				if (defined $parent -> mother)
+				{
+					$parent -> attributes({%{$parent -> attributes}, %{$class_attribute{edge} }, %$attribute});
+					$self -> _hoist_parental_attributes($parent);
+				}
+
+				$parent = $child;
+			}
+
+			$parent = $self -> edges if (! $edge_follows);
+		}
+		elsif ($type eq 'port_id')
+		{
+		}
+		elsif ($type eq 'start_scope')
+		{
+			next if ($value == 1); # First entry.
+
+			push @stack, $class_attribute{$_} for (@class);
+		}
+		elsif ($type eq 'strict')
+		{
+			$$tipe{strict} = $value eq 'yes' ? 1 : 0;
+		}
+	}
+
+	$self -> style($class_attribute{graph});
+	$self -> type($tipe);
+	$self -> nodes(\%node);
+
+} # End of _build_tree.
 
 # --------------------------------------------------
 # This is a function, not a method.
@@ -106,6 +369,19 @@ sub compass_id
 # --------------------------------------------------
 # This is a function, not a method.
 
+sub default_action
+{
+	my($stash, $t1, undef, $t2)  = @_;
+
+	# Return 0 for success and 1 for failure.
+
+	return 0;
+
+} # End of default_action.
+
+# --------------------------------------------------
+# This is a function, not a method.
+
 sub digraph
 {
 	my($stash, $t1, undef, $t2)  = @_;
@@ -115,6 +391,78 @@ sub digraph
 	return $t1;
 
 } # End of digraph.
+
+# -----------------------------------------------
+
+sub _edge_follows_node
+{
+	my($self, $items, $i) = @_;
+	my($edge_found)  = 0;
+	my(%node_suffix) =
+	(
+		start_attribute => 1,
+		attribute_id    => 1, # 'compass_point' or 'port_id'.
+		attribute_value => 1, # compass point id or port id.
+		end_attribute   => 1,
+	);
+
+	while ($i <= $#$items)
+	{
+		# Exit if we find an edge.
+
+		if ($$items[$i]{type} eq 'edge_id')
+		{
+			$edge_found = 1;
+
+			last;
+		}
+
+		# Exit if we found neither a port nor a compass point.
+
+		last if (! $node_suffix{$$items[$i]{type} });
+
+		$i++;
+	}
+
+	return $edge_found;
+
+} # End of _edge_follows_node.
+
+# -----------------------------------------------
+
+sub _edge_preceeds_node
+{
+	my($self, $items, $i) = @_;
+	my($edge_found)  = 0;
+	my(%node_suffix) =
+	(
+		start_attribute => 1,
+		attribute_id    => 1, # 'compass_point' or 'port_id'.
+		attribute_value => 1, # compass point id or port id.
+		end_attribute   => 1,
+	);
+
+	while ($i >= 0)
+	{
+		# Exit if we find an edge.
+
+		if ($$items[$i]{type} eq 'edge_id')
+		{
+			$edge_found = 1;
+
+			last;
+		}
+
+		# Exit if we found neither a port nor a compass point.
+
+		last if (! $node_suffix{$$items[$i]{type} });
+
+		$i--;
+	}
+
+	return $edge_found;
+
+} # End of _edge_preceeds_node.
 
 # --------------------------------------------------
 # This is a function, not a method.
@@ -145,15 +493,15 @@ sub end_attributes
 # --------------------------------------------------
 # This is a function, not a method.
 
-sub end_graph
+sub end_scope
 {
 	my($stash, $t1, undef, $t2)  = @_;
 
-	$myself -> new_item('end_graph', $t1);
+	$myself -> new_item('end_scope', $t1);
 
 	return $t1;
 
-} # End of end_graph.
+} # End of end_scope.
 
 # --------------------------------------------------
 # This is a function, not a method.
@@ -192,34 +540,12 @@ sub generate_parsed_file
 sub grammar
 {
 	my($self)    = @_;
-	my($grammar) = Marpa::Grammar -> new
+	my($grammar) = Marpa::R2::Grammar -> new
 		({
-		actions       => __PACKAGE__,
-		lhs_terminals => 0,
-		start         => 'graph_grammar',
-		symbols       =>
-		{
-			attribute_id    => {terminal => 1},
-			attribute_value => {terminal => 1},
-			class_id        => {terminal => 1},
-			close_brace     => {terminal => 1},
-			close_bracket   => {terminal => 1},
-			colon           => {terminal => 1},
-			compass_point   => {terminal => 1},
-			digraph         => {terminal => 1},
-			edge_id         => {terminal => 1},
-			end_subgraph    => {terminal => 1},
-			equals          => {terminal => 1},
-			graph_id        => {null_value => '', terminal => 1},
-			id              => {terminal => 1},
-			node_id         => {terminal => 1},
-			open_brace      => {terminal => 1},
-			open_bracket    => {terminal => 1},
-			port_id         => {terminal => 1},
-			start_subgraph  => {terminal => 1},
-			strict          => {terminal => 1},
-		},
-		rules =>
+		actions        => __PACKAGE__,
+		default_action => 'default_action',
+		start          => 'graph_grammar',
+		rules          =>
 			[
 			 {   # Root-level stuff.
 				 lhs => 'graph_grammar',
@@ -250,12 +576,12 @@ sub grammar
 			 },
 			 {   # Graph stuff.
 				 lhs => 'graph_sequence_definition',
-				 rhs => [qw/start_graph graph_sequence_list end_graph/],
+				 rhs => [qw/start_skope graph_sequence_list end_skope/],
 			 },
 			 {
-				 lhs    => 'start_graph',
-				 rhs    => [qw/open_brace/],
-				 action => 'start_graph',
+				 lhs    => 'start_skope',
+				 rhs    => [qw/start_scope/],
+				 action => 'start_scope',
 			 },
 			 {
 				 lhs => 'graph_sequence_list',
@@ -291,9 +617,9 @@ sub grammar
 				 rhs => [qw/subgraph_sequence_definition/],
 			 },
 			 {
-				 lhs    => 'end_graph',
-				 rhs    => [qw/close_brace/],
-				 action => 'end_graph',
+				 lhs    => 'end_skope',
+				 rhs    => [qw/end_scope/],
+				 action => 'end_scope',
 			 },
 			 {   # Node stuff.
 				 lhs => 'node_sequence_definition',
@@ -313,7 +639,7 @@ sub grammar
 			 },
 			 {
 				 lhs => 'node_sequence_item', # 3 of 4.
-				 rhs => [qw/start_graph graph_sequence_list end_graph/],
+				 rhs => [qw/start_skope graph_sequence_list end_skope/],
 			 },
 			 {
 				 lhs => 'node_statement', # 1 of 5.
@@ -495,6 +821,40 @@ sub graph_id
 
 } # End of graph_id.
 
+# -----------------------------------------------
+
+sub hashref2string
+{
+	my($self, $h) = @_;
+	$h ||= {};
+
+	return '{' . join(', ', map{qq|$_ => "$$h{$_}"|} sort keys %$h) . '}';
+
+} # End of hashref2string.
+
+# --------------------------------------------------
+# Handle cases such as A -> B -> C -> D [attributes],
+# where the attributes have just be stored in C's attributes,
+# and now must be hoisted into the attributes of A and B.
+# This is called with C as the value of $start_node.
+
+sub _hoist_parental_attributes
+{
+	my($self, $start_node)  = @_;
+	my($node) = $start_node;
+
+	my($attributes);
+
+	while ($node)
+	{
+		$node -> attributes({%{$start_node -> attributes} });
+
+		$start_node = $node;
+		$node       = $node -> mother;
+	}
+
+} # End of _hoist_parental_attributes.
+
 # --------------------------------------------------
 # This is a function, not a method.
 
@@ -528,21 +888,27 @@ sub increment_item_count
 
 sub _init
 {
-	my($self, $arg)     = @_;
-	$$arg{item_count}   = 0;
-	$$arg{items}        = Set::Array -> new;
-	$$arg{lexed_file}   ||= ''; # Caller can set.
-	$$arg{logger}       = defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
-	$$arg{maxlevel}     ||= 'notice'; # Caller can set.
-	$$arg{minlevel}     ||= 'error';  # Caller can set.
-	$$arg{output_file}  ||= '';       # Caller can set.
-	$$arg{parsed_file}  ||= '';       # Caller can set.
-	$$arg{renderer}     = defined($$arg{renderer}) ? $$arg{renderer} : undef; # Caller can set.
-	$$arg{report_items} ||= 0;        # Caller can set.
-	$$arg{tokens}       ||= [];       # Caller can set.
-	$$arg{utils}        = GraphViz2::Marpa::Utils -> new;
-	$self               = from_hash($self, $arg);
-	$myself             = $self;
+	my($self, $arg)         = @_;
+	$$arg{edges}            = Tree::DAG_Node -> new({name => 'Root'});
+	$$arg{item_count}       = 0;
+	$$arg{items}            = Set::Array -> new;
+	$$arg{lexed_file}       ||= '';       # Caller can set.
+	$$arg{logger}           = defined($$arg{logger}) ? $$arg{logger} : undef; # Caller can set.
+	$$arg{maxlevel}         ||= 'notice'; # Caller can set.
+	$$arg{minlevel}         ||= 'error';  # Caller can set.
+	$$arg{nodes}            = {};
+	$$arg{output_file}      ||= '';       # Caller can set.
+	$$arg{parsed_file}      ||= '';       # Caller can set.
+	$$arg{paths}            = 'Reserved'; # No need to set name. See _build_paths.
+	$$arg{renderer}         = defined($$arg{renderer}) ? $$arg{renderer} : undef; # Caller can set.
+	$$arg{report_forest}    ||= 0;        # Caller can set.
+	$$arg{report_items}     ||= 0;        # Caller can set.
+	$$arg{style}            = {};
+	$$arg{tokens}           ||= [];       # Caller can set.
+	$$arg{type}             = {};
+	$$arg{utils}            = GraphViz2::Marpa::Utils -> new;
+	$self                   = from_hash($self, $arg);
+	$myself                 = $self;
 
 	if (! defined $self -> logger)
 	{
@@ -576,9 +942,25 @@ sub _init
 
 # --------------------------------------------------
 
+sub _init_node
+{
+	my($self, $class_attribute) = @_;
+
+	return
+	{
+		attributes => {%$class_attribute},
+		fixed      => 0,
+	};
+
+} # End of _init_node.
+
+# --------------------------------------------------
+
 sub log
 {
 	my($self, $level, $s) = @_;
+	$level = 'notice' if (! defined $level);
+	$s     = ''       if (! defined $s);
 
 	$self -> logger -> $level($s) if ($self -> logger);
 
@@ -640,6 +1022,32 @@ sub port_id
 
 # --------------------------------------------------
 
+sub print_structure
+{
+	my($self) = @_;
+
+	$self -> log(notice => 'Type:');
+	$self -> log(notice => $self -> hashref2string($self -> type) );
+	$self -> log(notice => 'Style:');
+	$self -> log(notice => $self -> hashref2string($self -> style) );
+	$self -> log(notice => 'Nodes:');
+
+	my($node) = $self -> nodes;
+
+	for my $name (sort keys %$node)
+	{
+		$self -> log(notice => "$name. Attr: " . $self -> hashref2string($$node{$name}{attributes}) );
+	}
+
+	$self -> log(notice => 'Edges:');
+	$self -> log(notice => $_) for @{$self -> tree2string};
+	#$self -> log(notice => 'Paths:');
+	#$self -> log(notice => $_) for @{$self -> tree2string{$self -> paths)};
+
+} # End of print_structure.
+
+# --------------------------------------------------
+
 sub report
 {
 	my($self)   = @_;
@@ -659,7 +1067,7 @@ sub report
 sub run
 {
 	my($self)       = @_;
-	my($recognizer) = Marpa::Recognizer -> new({grammar => $self -> grammar});
+	my($recognizer) = Marpa::R2::Recognizer -> new({grammar => $self -> grammar});
 
 	if ($#{$self -> tokens} < 0)
 	{
@@ -677,7 +1085,7 @@ sub run
 	}
 
 	my($result) = $recognizer -> value;
-	$result     = $result ? ${$result} : 'Parse failed';
+	$result     = ref $result ? $$result : $result;
 	$result     = $result ? $result    : 0;
 
 	die $result if ($result);
@@ -690,10 +1098,20 @@ sub run
 
 	my($file_name) = $self -> parsed_file;
 
-	if ($file_name)
-	{
-		$self -> generate_parsed_file($file_name);
-	}
+	$self -> generate_parsed_file($file_name) if ($file_name);
+
+	# Build a Graphviz-like tree of the data.
+
+	$self -> _build_tree;
+
+	# Combine edges into paths.
+	# This method occassinally gets into an infinite loop.
+
+	#$self -> _build_paths;
+
+	# Announce the good news.
+
+	$self -> print_structure if ($self -> report_forest);
 
 	# Pass the tokens to the renderer.
 
@@ -725,15 +1143,15 @@ sub start_attributes
 # --------------------------------------------------
 # This is a function, not a method.
 
-sub start_graph
+sub start_scope
 {
 	my($stash, $t1, undef, $t2)  = @_;
 
-	$myself -> new_item('start_graph', $t1);
+	$myself -> new_item('start_scope', $t1);
 
 	return $t1;
 
-} # End of start_graph.
+} # End of start_scope.
 
 # --------------------------------------------------
 # This is a function, not a method.
@@ -773,6 +1191,17 @@ sub subgraph_id
 	return $t1;
 
 } # End of subgraph_id.
+
+# -----------------------------------------------
+
+sub tree2string
+{
+	my($self, $edges) = @_;
+	$edges ||= $self -> edges;
+
+	return $edges -> tree2string;
+
+} # End of tree2string.
 
 # --------------------------------------------------
 
@@ -896,6 +1325,8 @@ To disable logging, just set 'logger' to the empty string (not undef).
 
 This option affects L<Log::Handler>.
 
+You can get more output by calling new(maxlevel => 'info') and even more with new(maxlevel => 'debug').
+
 See the L<Log::Handler::Levels> docs.
 
 Default: 'notice'.
@@ -932,6 +1363,12 @@ Specify a renderer for the parser to use.
 
 Default: A object of type L<GraphViz2::Marpa::Renderer::GraphViz2>.
 
+=item o report_forest => $Boolean
+
+Log the forest of paths recognised by the parser.
+
+Default: 0.
+
 =item o report_items => $Boolean
 
 Log the items recognised by the lexer.
@@ -947,6 +1384,97 @@ The value supplied by the 'tokens' option takes preference over the 'lexed_file'
 =back
 
 =head1 Methods
+
+=head2 edges()
+
+Returns an object of type L<Tree>, where the root element is not used, but the children of this root are each
+the first node in a path. Here, path means each separately specified path in the input file.
+
+Consider part of data/55.gv:
+
+	A -> B
+	...
+	B -> C [color = orange penwidth = 5]
+	...
+	C -> D [arrowtail = obox arrowhead = crow dir = both minlen = 2]
+	D -> E [arrowtail = odot arrowhead = dot dir = both minlen = 2 penwidth = 5]
+
+Even though Graphviz will link A -> B -> C -> D when drawing the image, I<edges()> returns 4 separate
+paths. If you call new() as new(report_forest => 1) on data/55.gv, the output will include:
+
+	Edges:
+	root. Edge attrs: {}
+	   |---A. Edge attrs: {color => "purple"}
+	   |   |---B. Edge attrs: {}
+	   |---B. Edge attrs: {color => "orange", penwidth => "5"}
+	   |   |---C. Edge attrs: {}
+	   |---C. Edge attrs: {arrowhead => "crow", arrowtail => "obox", color => "purple", dir => "both", minlen => "2"}
+	   |   |---D. Edge attrs: {}
+	   |---D. Edge attrs: {arrowhead => "dot", arrowtail => "odot", color => "purple", dir => "both", minlen => "2", penwidth => "5"}
+	   |   |---E. Edge attrs: {}
+	...
+
+This says:
+
+=over 4
+
+=item o Each path starts from a child of the root
+
+=item o The attributes of an edge are stored in the parent of the 2 nodes making up each edge's segment
+
+=back
+
+If the last path was:
+
+	D -> E -> F [arrowtail = odot arrowhead = dot dir = both minlen = 2 penwidth = 5]
+
+Then the output would be:
+
+	   |---D. Edge attrs: {arrowhead => "dot", arrowtail => "odot", color => "purple", dir => "both", minlen => "2", penwidth => "5"}
+	   |   |---E. Edge attrs: {}
+	   |       |---F. Edge attrs: {}
+
+This structure is used by L<GraphViz2::Marpa::PathUtils/find_clusters()>.
+
+Warning: The forest of paths is faulty for graphs such as:
+
+	digraph graph_47
+	{
+		big ->
+		{
+			small
+			smaller
+			smallest
+		}
+	}
+
+The result will be:
+
+	Edges:
+	root. Edge attrs: {}
+	   |---big. Edge attrs: {}
+
+See also L</nodes()>, L</style()> and L</type()>.
+
+=head2 generate_parsed_file($file_name)
+
+Returns nothing.
+
+Outputs the CSV file of parsed items, if new() was called as new(parsed_file => $string).
+
+=head2 grammar()
+
+Returns the L<Marpa::R2::Recognizer> object.
+
+Called by L</run()>.
+
+=head2 hashref2string($h)
+
+Returns a string representation of the hashref.
+
+=head2 increment_item_count()
+
+Returns the next value of the internal item counter.
 
 =head2 items()
 
@@ -989,13 +1517,19 @@ Usage:
 
 =head2 lexed_file([$lex_file_name])
 
-'lexed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 Here, the [] indicate an optional parameter.
 
 Get or set the name of the CSV file of lexed tokens to read. This file can be output by the lexer.
 
 The value supplied by the 'tokens' option takes preference over the 'lexed_file' option.
+
+'lexed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
+=head2 log($level, $s)
+
+Logs the given string $s at the given log level $level.
+
+For levels, see L<Log::Handler::Levels>.
 
 =head2 logger([$logger_object])
 
@@ -1007,51 +1541,124 @@ To disable logging, just set 'logger' to the empty string, in the call to L</new
 
 This logger is passed to the default renderer.
 
+'logger' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
 =head2 maxlevel([$string])
+
+Here, the [] indicate an optional parameter.
+
+Get or set the value used by the logger object.
+
+This option is only used if L<GraphViz2::Marpa:::Lexer> or L<GraphViz2::Marpa::Parser>
+use or create an object of type L<Log::Handler>. See L<Log::Handler::Levels>.
 
 'maxlevel' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
+=head2 minlevel([$string])
+
 Here, the [] indicate an optional parameter.
 
 Get or set the value used by the logger object.
 
 This option is only used if L<GraphViz2::Marpa:::Lexer> or L<GraphViz2::Marpa::Parser>
 use or create an object of type L<Log::Handler>. See L<Log::Handler::Levels>.
-
-=head2 minlevel([$string])
 
 'minlevel' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-Here, the [] indicate an optional parameter.
-
-Get or set the value used by the logger object.
-
-This option is only used if L<GraphViz2::Marpa:::Lexer> or L<GraphViz2::Marpa::Parser>
-use or create an object of type L<Log::Handler>. See L<Log::Handler::Levels>.
-
 =head2 new()
+
+Returns a object of type GraphViz2::Marpa::Parser.
 
 See L</Constructor and Initialization> for details on the parameters accepted by L</new()>.
 
-=head2 output_file([$file_name])
+=head2 new_item($type, $value)
 
-'output_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+Adds a new item to the internal list of parsed items.
+
+At the end of the run, call L</items()> to retrieve this list.
+
+=head2 nodes()
+
+Returns a hashref of all nodes, keyed by node name, with the value of each entry being a hashref of node-specific
+data. The keys to this hashref are:
+
+=over 4
+
+=item o attributes
+
+These attributes include those specified at the class level, with (from data/55.gv):
+
+	node [shape = house]
+
+And those specified for nodes with explicitly defined attributes:
+
+	A [color = blue]
+
+But, be warned, Graphviz does not apply class-level attributes to nodes with explicitly declared attributes,
+but only to nodes defined with no attributes, or declared implicitly by appearing in the declaration of an edge:
+
+	C
+	...
+	H -> I
+
+See I<fixed> just below.
+
+The graph of data/55.gv then, is expected to have just these 3 nodes in the shape of houses.
+
+So, if you call new() as new(report_forest => 1) on data/55.gv, the output will include:
+
+	Nodes:
+	A. Attr: {}
+	B. Attr: {fillcolor => "goldenrod", shape => "square", style => "filled"}
+	C. Attr: {shape => "house"}
+	D. Attr: {fillcolor => "turquoise4", shape => "circle", style => "filled"}
+	E. Attr: {fillcolor => "turquoise4", shape => "circle", style => "filled"}
+	F. Attr: {fillcolor => "yellow", shape => "hexagon", style => "filled"}
+	G. Attr: {fillcolor => "darkorchid", shape => "pentagon", style => "filled"}
+	H. Attr: {fillcolor => "lightblue", fontsize => "20", shape => "house", style => "filled"}
+	I. Attr: {fillcolor => "lightblue", fontsize => "20", shape => "house", style => "filled"}
+	J. Attr: {fillcolor => "magenta", fontsize => "26", shape => "square", style => "filled"}
+	K. Attr: {fillcolor => "magenta", fontsize => "26", shape => "triangle", style => "filled"}
+
+=item o fixed
+
+This is a Boolean which records whether or not Graphviz will apply class-level attributes to nodes.
+
+=back
+
+See also L</edges()>, L</style()> and L</type()>.
+
+=head2 output_file([$file_name])
 
 Here, the [] indicate an optional parameter.
 
 Get or set the name of the file to be passed to the renderer.
 
-=head2 parsed_file([$file_name])
+'output_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'parsed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 parsed_file([$file_name])
 
 Here, the [] indicate an optional parameter.
 
 Get or set the name of the file of parsed tokens for the parser to write. This file can be input to the renderer.
 
-=head2 renderer([$renderer_object])
+'parsed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'renderer' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 paths()
+
+Reserved.
+
+See also L</edges()>, L</nodes()>, L</style()> and L</type()>.
+
+=head2 print_structure()
+
+Calls L</tree2string([$edges])> for $self -> edges.
+
+Called by L</run()> at the end of the run, if new() was called as new(report_forest => 1).
+
+Logs all details stored in the getters L</edges()>, L</nodes()>, L</style()> and L</type()>.
+
+=head2 renderer([$renderer_object])
 
 Here, the [] indicate an optional parameter.
 
@@ -1059,29 +1666,91 @@ Get or set the renderer object.
 
 This renderer renders the tokens output by the parser.
 
-=head2 report_items([$Boolean])
+'renderer' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'report_items' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 report()
+
+Called by L</run()>.
+
+Logs the list of parsed items if new() was called as new(report_items => 1).
+
+=head2 report_forest([$Boolean])
+
+The [] indicate an optional parameter.
+
+Get or set the value which determines whether or not to log the forest of paths recognised by the parser.
+
+'report_forest' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
+=head2 report_items([$Boolean])
 
 The [] indicate an optional parameter.
 
 Get or set the value which determines whether or not to log the items recognised by the parser.
 
-=head2 run()
+'report_items' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-This is the only method the caller needs to call. All parameters are supplied to L</new()> (or other methods).
+=head2 run()
 
 Returns 0 for success and 1 for failure.
 
-=head2 tokens([$arrayrefOfLexedTokens])
+This is the only method the caller needs to call. All parameters are supplied to L</new()> (or other methods).
 
-'tokens' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+At the end of the run, you can call any or all of these:
+
+L</edges()>, L</items()>, L</nodes()>, L</style()> and L</type()>.
+
+If you called new() without setting any report options, you could also call:
+
+L</print_structure()> and L</report()>.
+
+=head2 style()
+
+Returns a hashref of attributes used to style the rendered graph:
+
+So, if you call new() as new(report_forest => 1) on data/55.gv, the output will include:
+
+	Style:
+	{label => "Complex Syntax Test", rankdir => "TB"}
+
+See also L</edges()>, L</nodes()> and L</type()>.
+
+=head2 tokens([$arrayrefOfLexedTokens])
 
 Here, the [] indicate an optional parameter.
 
 Get or set the arrayref of lexed tokens to process.
 
 The value supplied by the 'tokens' option takes preference over the 'lexed_file' option.
+
+'tokens' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
+=head2 tree2string([$edges])
+
+Here, the [] indicate an optional parameter.
+
+If $edges is not supplied, it defaults to $self -> edges.
+
+Returns an arrayref which can be printed with:
+
+	print map{"$_\n"} @{$self -> tree2string};
+
+Calls L</Tree::DAG_Node/tree2string([$options], [$some_tree])>.
+
+Only override this in a sub-class if you wish to log the forest in a different format.
+
+=head2 type()
+
+Returns a hashref of attributes describing what type of graph it is.
+
+So, if you call new() as new(report_forest => 1) on data/55.gv, the output will include:
+
+	Type:
+	{digraph => "1", graph_id => "graph_55", strict => "1"}
+
+This hashref always has the same 3 keys.
+
+See also L</edges()>, L</nodes()> and L</style()>.
 
 =head2 utils([$aUtilsObject])
 
@@ -1092,6 +1761,58 @@ Get or set the utils object.
 Default: A object of type L<GraphViz2::Marpa::Utils>.
 
 =head1 FAQ
+
+=head2 Are the certain cases I should watch out for?
+
+Yes. Consider these 3 situations and their corresponding lexed or parsed output:
+
+=over 4
+
+=item o digraph g {...}
+
+	digraph     , "yes"
+	graph_id    , "g"
+	start_scope , "1"
+
+=over 4
+
+=item o The I<start_scope> count must be 1 because it's at the very start of the graph
+
+=back
+
+=item o subgraph s {...}
+
+	start_subgraph , "1"
+	graph_id       , "s"
+	start_scope    , "2"
+
+=over 4
+
+=item o The I<start_scope> count must be 2 or more
+
+=item o When I<start_scope> is preceeded by I<graph_id>, it's a subgraph
+
+=item o Given 'subgraph {...}', the I<graph_id> will be ""
+
+=back
+
+=item o {...}
+
+	start_scope , "2"
+
+=over 4
+
+=item o The I<start_scope> count must be 2 or more
+
+=item o When I<start_scope> is I<not> preceeded by I<graph_id>, it's a stand-alone {...}
+
+=back
+
+=back
+
+=head2 Do the getters edges(), nodes(), style() and type() duplicate all of the input file's data?
+
+No. In particular, subgraph info is still missing.
 
 =head2 Why doesn't the lexer/parser handle my HTML-style labels?
 
@@ -1179,15 +1900,15 @@ $id is either '->' for a digraph or '--' for a graph.
 
 This indicates the end of a set of attributes.
 
-=item o end_graph => $graph_count
+=item o end_scope => $brace_count
 
 This indicates the end of a graph or subgraph or any stand-alone {}, and - for subgraphs - preceeds the subgraph's 'end_subgraph'.
 
-$graph_count increments by 1 each time 'graph_id' is detected in the input string, and decrements each time a matching 'end_graph' is detected.
+$brace_count increments by 1 each time 'graph_id' is detected in the input string, and decrements each time a matching 'end_scope' is detected.
 
 =item o end_subgraph => $subgraph_count
 
-This indicates the end of a subgraph, and follows the subgraph's 'end_graph'.
+This indicates the end of a subgraph, and follows the subgraph's 'end_scope'.
 
 $subgraph_count increments by 1 each time 'start_subgraph' is detected in the input string, and decrements each time a matching 'end_subgraph' is detected.
 
@@ -1205,11 +1926,11 @@ For graphs and subgraphs, the $id may be '' (the empty string).
 
 This indicates the start of a set of attributes.
 
-=item o start_graph => $graph_count
+=item o start_scope => $brace_count
 
-This indicates the start of a graph, or any stand-alone {}.
+This indicates the start of the graph, a subgraph, or any stand-alone {}.
 
-$graph_count increments by 1 each time 'graph_id' is detected in the input string, and decrements each time a matching 'end_graph' is detected.
+$brace_count increments by 1 each time 'graph_id' is detected in the input string, and decrements each time a matching 'end_scope' is detected.
 
 =item o start_subgraph => $subgraph_count
 
@@ -1232,6 +1953,11 @@ Comments are not expected in the input stream.
 =head2 How does the parser interact with Marpa?
 
 See L<http://savage.net.au/Perl-modules/html/graphviz2.marpa/Lexing.and.Parsing.with.Marpa.html>.
+
+=head2 This module uses Hash::FieldHash, which has an XS component!
+
+Correct. My policy is that stand-alone modules should use a light-weight object manager (my choice is
+L<Hash::FieldHash>), whereas apps can - and probably should - use L<Moose>.
 
 =head1 Machine-Readable Change Log
 

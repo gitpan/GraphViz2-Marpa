@@ -37,7 +37,7 @@ fieldhash my %timeout      => 'timeout';
 fieldhash my %type         => 'type';
 fieldhash my %utils        => 'utils';
 
-our $VERSION = '1.05';
+our $VERSION = '1.06';
 
 # --------------------------------------------------
 
@@ -827,7 +827,7 @@ See also the L</description()> method.
 
 =head2 items()
 
-Returns an arrayref of lexed tokens. Each element of this arrayref is a hashref. See L</How is the lexed graph stored in RAM?> for details.
+Returns an arrayref of lexed tokens. Each element of this arrayref is a hashref.
 
 These lexed tokens do I<not> bear a one-to-one relationship to the parsed tokens returned by the parser's L<items()/GraphViz2::Marpa::Parser> method.
 However, they are (necessarily) very similar.
@@ -869,21 +869,166 @@ Usage:
 		my(@items) = @{$lexer -> items};
 	}
 
-=head2 lexed_file([$lex_file_name])
+See also L</How is the lexed graph stored in RAM?> in the L</FAQ> below.
+And see any data/*.lex file for sample data.
 
-'lexed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+And now for a real graph:
+
+Input: data/15.gv:
+
+	digraph graph_15
+	{
+		node
+		[
+			shape = "record"
+		]
+		edge
+		[
+			color = "red"
+			penwidth = 5
+		]
+		node_15_1
+		[
+			label = "<f0> left|<f1> middle|<f2> right"
+		]
+		node_15_2
+		[
+			label = "<f0> one|<f1> two"
+		]
+		node_15_1:f0 -> node_15_2:f1
+		[
+			arrowhead = "obox"
+		]
+	}
+
+Output: data/15.lex:
+
+	"type","value"
+	strict              , "no"
+	digraph             , "yes"
+	graph_id            , "graph_15"
+	start_scope         , "1"
+	class_id            , "node"
+	open_bracket        , "["
+	attribute_id        , "shape"
+	equals              , "="
+	attribute_value     , "record"
+	close_bracket       , "]"
+	class_id            , "edge"
+	open_bracket        , "["
+	attribute_id        , "color"
+	equals              , "="
+	attribute_value     , "red"
+	attribute_id        , "penwidth"
+	equals              , "="
+	attribute_value     , "5"
+	close_bracket       , "]"
+	node_id             , "node_15_1"
+	open_bracket        , "["
+	attribute_id        , "label"
+	equals              , "="
+	attribute_value     , "<f0> left|<f1> middle|<f2> right"
+	close_bracket       , "]"
+	node_id             , "node_15_2"
+	open_bracket        , "["
+	attribute_id        , "label"
+	equals              , "="
+	attribute_value     , "<f0> one|<f1> two"
+	close_bracket       , "]"
+	node_id             , "node_15_1"
+	open_bracket        , "["
+	attribute_id        , "port_id"
+	equals              , "="
+	attribute_value     , "f0"
+	close_bracket       , "]"
+	edge_id             , "->"
+	node_id             , "node_15_2"
+	open_bracket        , "["
+	attribute_id        , "port_id"
+	equals              , "="
+	attribute_value     , "f1"
+	attribute_id        , "arrowhead"
+	equals              , "="
+	attribute_value     , "obox"
+	close_bracket       , "]"
+	end_scope           , "1"
+
+Note the pair:
+
+	open_bracket        , "["
+	...
+	close_bracket       , "]"
+
+They start and end each set of attributes, which are of 3 types:
+
+=over 4
+
+=item o Node
+
+Node attributes can be specified both at the class (all subsequent nodes) level, or for a specific node.
+
+Class:
+
+	node
+	[
+		shape = "record" # Attribute.
+	]
+
+Node:
+
+	node_15_1
+	[
+		label = "<f0> left|<f1> middle|<f2> right" # Attribute.
+	]
+
+Edge:
+
+	node_15_1:f0 -> node_15_2:f1 # Attributes.
+	[
+		arrowhead = "obox"
+	]
+
+=item o Edge
+
+Edge attributes can be specified both at the class level and after the second of 2 nodes on an edge.
+
+	edge
+	[
+		color = "red" # Attribute.
+		penwidth = 5  # Attribute.
+	]
+
+and
+
+	node_15_1:f0 -> node_15_2:f1
+	[
+		arrowhead = "obox" # Attribute.
+	]
+
+=item o Port/compass point
+
+These only ever occur for one or both of the 2 nodes on an edge, i.e. not at the class or node level:
+
+	node_15_1:f0 -> node_15_2:f1 # Attributes.
+	[
+		arrowhead = "obox"
+	]
+
+=back
+
+=head2 lexed_file([$lex_file_name])
 
 Here, the [] indicate an optional parameter.
 
 Get or set the name of the CSV file of lexed tokens to write. This file can be input to the parser.
+
+'lexed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head2 log($level, $s)
 
 Calls $self -> logger -> $level($s) if ($self -> logger).
 
 =head2 logger([$logger_object])
-
-'logger' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 Here, the [] indicate an optional parameter.
 
@@ -893,27 +1038,29 @@ To disable logging, just set 'logger' to the empty string (not undef), in the ca
 
 This logger is passed to L<GraphViz2::Marpa::Lexer::DFA>.
 
+'logger' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
 =head2 maxlevel([$string])
+
+Here, the [] indicate an optional parameter.
+
+Get or set the value used by the logger object.
+
+This option is only used if L<GraphViz2::Marpa:::Lexer> or L<GraphViz2::Marpa::Parser>
+use or create an object of type L<Log::Handler>. See L<Log::Handler::Levels>.
 
 'maxlevel' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-Here, the [] indicate an optional parameter.
-
-Get or set the value used by the logger object.
-
-This option is only used if L<GraphViz2::Marpa:::Lexer> or L<GraphViz2::Marpa::Parser>
-use or create an object of type L<Log::Handler>. See L<Log::Handler::Levels>.
-
 =head2 minlevel([$string])
 
-'minlevel' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 Here, the [] indicate an optional parameter.
 
 Get or set the value used by the logger object.
 
 This option is only used if L<GraphViz2::Marpa:::Lexer> or L<GraphViz2::Marpa::Parser>
 use or create an object of type L<Log::Handler>. See L<Log::Handler::Levels>.
+
+'minlevel' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head2 new()
 
@@ -925,21 +1072,21 @@ Log the list of items recognized by the DFA.
 
 =head2 report_items([$Boolean])
 
-'report_items' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 The [] indicate an optional parameter.
 
 Get or set the value which determines whether or not to log the items recognised by the lexer.
 
-=head2 report_stt([$Boolean])
+'report_items' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'report_stt' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 report_stt([$Boolean])
 
 The [] indicate an optional parameter.
 
 Get or set the value which determines whether or not to log the parsed state transition table (STT).
 
 Calls L<Set::FA::Element/report()>. Set min and max log levels to 'info' for this.
+
+'report_stt' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head2 run()
 
@@ -949,8 +1096,6 @@ Returns 0 for success and 1 for failure.
 
 =head2 stt_file([$stt_file_name])
 
-'stt_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 The [] indicate an optional parameter.
 
 Get or set the name of the file containing the State Transition Table.
@@ -959,21 +1104,23 @@ This option is used in conjunction with the 'type' option to L</new()>.
 
 If the file name matches /csv$/, the value of the 'type' option is set to 'csv'.
 
-=head2 timeout($seconds)
+'stt_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'timeout' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 timeout($seconds)
 
 The [] indicate an optional parameter.
 
 Get or set the timeout for how long to run the DFA.
 
-=head2 type([$type])
+'timeout' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-'type' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+=head2 type([$type])
 
 The [] indicate an optional parameter.
 
 Get or set the value which determines what type of 'stt_file' is read.
+
+'type' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head2 utils([$aUtilsObject])
 
@@ -984,6 +1131,54 @@ Get or set the utils object.
 Default: A object of type L<GraphViz2::Marpa::Utils>.
 
 =head1 FAQ
+
+=head2 Are the certain cases I should watch out for?
+
+Yes. Consider these 3 situations and their corresponding lexed output:
+
+=over 4
+
+=item o digraph g {...}
+
+	digraph     , "yes"
+	graph_id    , "g"
+	start_scope , "1"
+
+=over 4
+
+=item o The I<start_scope> count must be 1 because it's at the very start of the graph
+
+=back
+
+=item o subgraph s {...}
+
+	start_subgraph  , "1"
+	graph_id        , "s"
+	start_scope     , "2"
+
+=over 4
+
+=item o The I<start_scope> count must be 2 or more
+
+=item o When I<start_scope> is preceeded by I<graph_id>, it's a subgraph
+
+=item o Given 'subgraph {...}', the I<graph_id> will be ""
+
+=back
+
+=item o {...}
+
+	start_scope , "2"
+
+=over 4
+
+=item o The I<start_scope> count must be 2 or more
+
+=item o When I<start_scope> is I<not> preceeded by I<graph_id>, it's a stand-alone {...}
+
+=back
+
+=back
 
 =head2 Why doesn't the lexer/parser handle my HTML-style labels?
 
@@ -1021,7 +1216,8 @@ In L<GraphViz2::Marpa::Lexer::DFA>.
 
 =head2 How is the lexed graph stored in RAM?
 
-Items are stored in an arrayref. This arrayref is available via the L</items()> method.
+Items are stored in an arrayref. This arrayref is available via the L</items()> method, which also has a
+long explanation of this subject.
 
 These items have the same format as the arrayref of items returned by the items() method in
 L<GraphViz2::Marpa::Parser>, and the same as in L<GraphViz2::Marpa::Lexer::DFA>.
@@ -1052,27 +1248,15 @@ edge, graph, or node, to specify attributes which apply to all such cases. So:
 
 	node [shape = Msquare]
 
-means all nodes after this point in the input stream default to having a square shape. Of course this
+means all nodes after this point in the input stream default to having an Msquare shape. Of course this
 can be overidden by another such line, or by any specific node having a shape as part of its list of
 attributes.
 
 See data/51.* for sample code.
 
-=item o close_brace => $brace_count
-
-This indicates the end of the graph, the end of a subgraph, or the end of a stand-alone {...}.
-
-$brace_count increments by 1 each time '{' is detected in the input string, and decrements each time '}' is detected.
-
 =item o close_bracket => ']'
 
 This indicates the end of a set of attributes.
-
-=item o colon => ':'
-
-This separates nodes from ports and ports from compass points.
-
-=item o compass_point => $id
 
 =item o digraph => $yes_no
 
@@ -1082,9 +1266,15 @@ This separates nodes from ports and ports from compass points.
 
 $id is either '->' for a digraph or '--' for a graph.
 
+=item o end_scope => $brace_count
+
+This indicates the end of the graph, the end of a subgraph, or the end of a stand-alone {...}.
+
+$brace_count increments by 1 each time '{' is detected in the input string, and decrements each time '}' is detected.
+
 =item o end_subgraph => $subgraph_count
 
-This indicates the end of a subgraph, and follows the subgraph's 'close_brace'.
+This indicates the end of a subgraph, and follows the subgraph's 'end_scope'.
 
 $subgraph_count increments by 1 each time 'subgraph' is detected in the input string, and decrements each time a matching '}' is detected.
 
@@ -1092,15 +1282,27 @@ $subgraph_count increments by 1 each time 'subgraph' is detected in the input st
 
 This separates 'attribute_id' from 'attribute_value'.
 
+The parser does not output this token.
+
 =item o graph_id => $id
 
 This indicates both the graph's $id and each subgraph's $id.
 
-For graphs and subgraphs, the $id may be '' (the empty string).
+For graphs and subgraphs, the $id may be '' (the empty string), and in a case such as:
+
+	{
+		rank = same
+		A
+		B
+	}
+
+The $id will definitely be ''.
+
+See data/18.gv, data/19.gv, data/53.gv and data/55.gv.
 
 =item o node_id => $id
 
-=item o open_brace => $brace_count
+=item o start_scope => $brace_count
 
 This indicates the start of the graph, the start of a subgraph, or the start of a stand-alone {...}.
 
@@ -1109,8 +1311,6 @@ $brace_count increments by 1 each time '{' is detected in the input string, and 
 =item o open_bracket => '['
 
 This indicates the start of a set of attributes.
-
-=item o port_id => $id
 
 =item o start_subgraph => $subgraph_count
 
@@ -1210,14 +1410,14 @@ Yes,,initial,strict,graph,,save_prefix,"(?:""[^""]*""|<\s*<.*?>\s*>|[a-zA-Z_][a-
 ,,graph,(?:graph|digraph),graph_id,,save_prefix,(?:->|--),Edge
 ,,,\s+,graph,,,,
 ,,,,,,,,
-,,graph_id,"(?:""[^""]*""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",open_brace,,save_graph_id,,
+,,graph_id,"(?:""[^""]*""|<\s*<.*?>\s*>|[a-zA-Z_][a-zA-Z_0-9]*|-?(?:\.[0-9]+|[0-9]+(?:\.[0-9])*))",start_scope,,save_graph_id,,
 ,,,{,statement_list_1,,,,
 ,,,\/\*.*?\*\/,graph_id,,,,
 ,,,\s+,graph_id,,,,
 ,,,,,,,,
-,,open_brace,{,statement_list_1,,start_statements,,
-,,,\/\*.*?\*\/,open_brace,,,,
-,,,\s+,open_brace,,,,
+,,start_scope,{,statement_list_1,,start_statements,,
+,,,\/\*.*?\*\/,start_scope,,,,
+,,,\s+,start_scope,,,,
 ,,,,,,,,
 ,,start_statement,{,statement_list_1,,start_statements,,
 ,,,\/\*.*?\*\/,start_statement,,,,

@@ -1,450 +1,556 @@
 <html>
 <head>
-<title>Code and Command Line Attributes for GraphViz2::Marpa</title>
+	<title>Code and Command Line Attributes for GraphViz2::Marpa</title>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	<meta http-equiv="cache-control" content="no-cache">
+	<meta http-equiv="pragma" content="no-cache">
+	<link rel="stylesheet" type="text/css" href="/assets/css/graphviz2/marpa/default.css">
+	<link rel="stylesheet" type="text/css" href="/assets/css/graphviz2/marpa/fancy.table.css">
 </head>
 <body>
 
-<h1 align="center">Code and Command Line Attributes for GraphViz2::Marpa V 1.02</h1>
+<h1 align="center">Module and Script Attributes for <a href="http://metacpan.org/release/GraphViz2-Marpa">GraphViz2::Marpa</a> V 1.06</h1>
 
-<p>This documents the list of command line options and object attributes shared by the modules in this package.</p>
+<p align="center">This documents the list of command line options and object attributes shared by the modules
+and scripts in this package.</p>
 
-<table align="center" border="0" summary="STT">
+<p align="center">The table is built by code in GraphViz2::Marpa::Utils, which scans the source code of the modules
+and scripts, looking for attribute declarations.</p>
+
+<table align="center" border = "1" summary = "Code attributes">
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">Name</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Usage</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">lex.pl</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Lexer.pm</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">DFA.pm</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">parse.pl</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Parser.pm</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">rend.pl</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Renderer</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">g2m.pl</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Marpa</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Notes</div></td>
+<td>Mutator</td>
+<td>lex.pl</td>
+<td>Lexer.pm</td>
+<td>DFA.pm</td>
+<td>parse.pl</td>
+<td>Parser.pm</td>
+<td>rend.pl</td>
+<td>g2m.pl</td>
+<td>Marpa.pm</td>
+<td>Renderer.pm</td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">attribute</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Array</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>attribute</td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">brace_count</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Integer</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>brace_count</td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">description</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">DOT string</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">DOT input to the lexer</div></td>
+<td>description</td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">dfa</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">DFA object</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>dfa</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">graph_text</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">DOT string</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Either from description or input_file</div></td>
+<td>edges</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">help</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Print help</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>graph_text</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">input_file</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">DOT file</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">DOT input to the lexer</div></td>
+<td>help</td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">item_count</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Integer</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>input_file</td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">items</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Array</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Output from the lexer</div></td>
+<td>item_count</td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">lexed_file</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">File name</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Output from the lexer and parser</div></td>
+<td>items</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">logger</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Logger object</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>lexed_file</td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">maxlevel</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Level name</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>lexer</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">minlevel</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Level name</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>logger</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">output_file</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">File name</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">DOT output from the (default) renderer</div></td>
+<td>maxlevel</td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">output_string</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">DOT string</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>minlevel</td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">parsed_file</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">File name</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Output from the parser</div></td>
+<td>nodes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">renderer</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">A renderer</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">The renderer object</div></td>
+<td>output_file</td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">report_items</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Boolean</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>output_string</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">report_stt</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Boolean</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>parsed_file</td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">start</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">String</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">The name of the start state</div></td>
+<td>parser</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">state</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Hash</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">State Transition Table</div></td>
+<td>paths</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">stt_file</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">File name</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>renderer</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">subgraph</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Stack</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">An object of type Set::Array</div></td>
+<td>report_forest</td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">subgraph_count</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Integer</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>report_items</td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">timeout</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Integer</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>report_stt</td>
+<td>Y</td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">tokens</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Array</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Input to the parser. Input to the renderer</div></td>
+<td>start</td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">type</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">STT file type</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>state</td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">utils</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Read CSV file</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">An object of type GraphViz2::Marpa::Utils</div></td>
+<td>stt_file</td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">verbose</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Boolean</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Y</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">.</div></td>
+<td>style</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr>
-<td><div style="border: thin solid; margin: 0; padding: 0">Name</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Usage</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">lex.pl</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Lexer.pm</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">DFA.pm</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">parse.pl</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Parser.pm</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">rend.pl</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Renderer</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">g2m.pl</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Marpa</div></td>
-<td><div style="border: thin solid; margin: 0; padding: 0">Notes</div></td>
+<td>subgraph</td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>subgraph_count</td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>timeout</td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+</tr>
+<tr>
+<td>tokens</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+</tr>
+<tr>
+<td>type</td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td>Y</td>
+<td>Y</td>
+<td></td>
+</tr>
+<tr>
+<td>utils</td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td>Y</td>
+</tr>
+<tr>
+<td>verbose</td>
+<td></td>
+<td></td>
+<td>Y</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Mutator</td>
+<td>lex.pl</td>
+<td>Lexer.pm</td>
+<td>DFA.pm</td>
+<td>parse.pl</td>
+<td>Parser.pm</td>
+<td>rend.pl</td>
+<td>g2m.pl</td>
+<td>Marpa.pm</td>
+<td>Renderer.pm</td>
 </tr>
 </table>
 
+
+<hr />
+
+<h3 class="global_toc_text">Links</h3>
+
+<h2 align="center">Index page for <a href="http://savage.net.au/Graph-module-demos.html">all graph module demos</a></h2>
+
+<h2 align="center">Demo page for <a href="http://savage.net.au/Perl-modules/html/graphviz2.marpa/index.html">GraphViz2::Marpa</a></h2>
+
+<h2 align="center"><a href="http://savage.net.au/Perl-modules/html/graphviz2.marpa/stt.html">State transition table</a></h2>
+
+<hr />
+
+<h3 class="global_toc_text">Environment</h3>
+
+<table align="center" cellspacing="0">
+<tr>
+<!-- Left -->
+<td>
+<div class="even_left">
+Author
+</div>
+</td>
+<!-- Right -->
+<td>
+<div class="even_right">
+<a href="http://savage.net.au/">Ron Savage</a>
+</div>
+</td>
+</tr>
+<tr>
+<!-- Left -->
+<td>
+<div class="odd_left">
+Date
+</div>
+</td>
+<!-- Right -->
+<td>
+<div class="odd_right">
+2012-11-02
+</div>
+</td>
+</tr>
+<tr>
+<!-- Left -->
+<td>
+<div class="even_left">
+OS
+</div>
+</td>
+<!-- Right -->
+<td>
+<div class="even_right">
+Debian V 6
+</div>
+</td>
+</tr>
+<tr>
+<!-- Left -->
+<td>
+<div class="last_odd_left">
+Perl
+</div>
+</td>
+<!-- Right -->
+<td>
+<div class="last_odd_right">
+5.14.2
+</div>
+</td>
+</tr>
+</table>
+
+<hr />
 
 </body>
 </html>

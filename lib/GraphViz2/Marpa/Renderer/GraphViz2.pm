@@ -22,7 +22,7 @@ fieldhash my %parsed_file   => 'parsed_file';
 fieldhash my %tokens        => 'tokens';
 fieldhash my %utils         => 'utils';
 
-our $VERSION = '1.05';
+our $VERSION = '1.06';
 
 # --------------------------------------------------
 
@@ -30,20 +30,55 @@ sub format_attributes
 {
 	my($self, $attributes) = @_;
 
-	$self -> new_item('[', 1, 0);
+	# Strip off the port attributes.
 
+	my(@edge_attributes);
 	my($name);
+	my(%port_attributes);
 	my($value);
 
 	while (@$attributes)
 	{
 		($name, $value) = (shift @$attributes, shift @$attributes);
-		$value          = qq|"$value"| if ($value !~ /^<</); # No quotes for HTML-like labels.
 
-		$self -> new_item(qq|$name = $value|, 1, 0, 0);
+		if ($name =~ /(?:compass_point|port_id)/)
+		{
+			$port_attributes{$name} = $value;
+		}
+		else
+		{
+			push @edge_attributes, $name, $value;
+		}
 	}
 
-	$self -> new_item(']', 1, 0, 0);
+	# If there are any port attributes, add them to the preceeding node.
+
+	if (scalar keys %port_attributes)
+	{
+		my($node) = $self -> items -> pop;
+		my($name) = $$node{value};
+		$name     = "$name:$port_attributes{port_id}"       if (defined $port_attributes{port_id});
+		$name     = "$name:$port_attributes{compass_point}" if (defined $port_attributes{compass_point});
+
+		$self -> new_item($name, $$node{newline}, $$node{juxtaposed}, $$node{spaced});
+	}
+
+	# Now output the edges attributes, if any.
+
+	if (scalar @edge_attributes)
+	{
+		$self -> new_item('[', 1, 0);
+
+		while (@edge_attributes)
+		{
+			($name, $value) = (shift @edge_attributes, shift @edge_attributes);
+			$value          = qq|"$value"| if ($value !~ /^<</); # No quotes for HTML-like labels.
+
+			$self -> new_item(qq|$name = $value|, 1, 0, 0);
+		}
+
+		$self -> new_item(']', 1, 0, 0);
+	}
 
 } # End of format_attributes.
 
@@ -241,8 +276,8 @@ sub run
 			when ('strict')          {$self -> new_item($value eq 'no' ? '' : 'strict ', 0, 0, 0);}
 			when ('digraph')         {$self -> new_item($value eq 'no' ? 'graph' : 'digraph', 0, 0, 0);}
 			when ('graph_id')        {$self -> new_item($value, 0, 0, 1);}
-			when ('start_graph')     {$self -> new_item('{', 1, 0, 0);}
-			when ('end_graph')       {$self -> new_item('}', 1, 0, 0);}
+			when ('start_scope')     {$self -> new_item('{', 1, 0, 0);}
+			when ('end_scope')       {$self -> new_item('}', 1, 0, 0);}
 			when ('start_subgraph')  {$self -> new_item('subgraph', 1, 0, 0);}
 			when ('end_subgraph')    {}
 			when ('start_attribute') {@attributes = ();}
@@ -254,9 +289,6 @@ sub run
 			when ('class_id')        {$self -> new_id($last_type, $type, $value);}
 			when ('edge_id')         {$self -> new_id($last_type, $type, $value);}
 			when ('node_id')         {$self -> new_id($last_type, $type, $value);}
-			when ('colon')           {$self -> new_item($value, 0, 1, 0);}
-			when ('port_id')         {$self -> new_item($value, 0, 1, 0);}
-			when ('compass_point')   {$self -> new_item($value, 0, 1, 0);}
 			default                  {die "Unexpected type '$type' (with value '$value') in the input";}
 		}
 
@@ -424,35 +456,35 @@ Calls $self -> logger -> $level($s) if ($self -> logger).
 
 =head2 logger([$logger_object])
 
-'logger' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 Here, the [] indicate an optional parameter.
 
 Get or set the logger object.
 
 To disable logging, just set 'logger' to the empty string (not undef), in the call to L</new()>.
 
+'logger' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
 =head2 maxlevel([$string])
+
+Here, the [] indicate an optional parameter.
+
+Get or set the value used by the logger object.
+
+This option is only used if L<GraphViz2::Marpa:::Lexer> or L<GraphViz2::Marpa::Parser>
+create an object of type L<Log::Handler>. See L<Log::Handler::Levels>.
 
 'maxlevel' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
-Here, the [] indicate an optional parameter.
-
-Get or set the value used by the logger object.
-
-This option is only used if L<GraphViz2::Marpa:::Lexer> or L<GraphViz2::Marpa::Parser>
-create an object of type L<Log::Handler>. See L<Log::Handler::Levels>.
-
 =head2 minlevel([$string])
 
-'minlevel' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 Here, the [] indicate an optional parameter.
 
 Get or set the value used by the logger object.
 
 This option is only used if L<GraphViz2::Marpa:::Lexer> or L<GraphViz2::Marpa::Parser>
 create an object of type L<Log::Handler>. See L<Log::Handler::Levels>.
+
+'minlevel' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head2 new()
 
@@ -460,13 +492,13 @@ See L</Constructor and Initialization> for details on the parameters accepted by
 
 =head2 output_file([$file_name])
 
-'output_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 Here, the [] indicate an optional parameter.
 
 Get or set the name of the output file. This will contain the text string of the rendered graph.
 
 If the output file name is not set, use the L</output_string()> method to retrieve the string.
+
+'output_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head2 output_string()
 
@@ -476,13 +508,13 @@ To save the output in a file, use the 'output_file' parameter to L</new()>.
 
 =head2 parsed_file([$file_name])
 
-'parsed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 Here, the [] indicate an optional parameter.
 
 Get or set the name of the file of parsed tokens to read.
 
 =head2 run()
+
+'parsed_file' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 Renders the arrayref of items as a string and, optionally, writes that string to the output file.
 
@@ -494,11 +526,11 @@ Returns 0 for success and 1 for failure.
 
 =head2 tokens([$arrayref])
 
-'tokens' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
-
 Here, the [] indicate an optional parameter.
 
 Gets or sets the arrayref of tokens to be rendered.
+
+'tokens' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
 
 =head2 utils([$aUtilsObject])
 
