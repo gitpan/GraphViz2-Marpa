@@ -23,7 +23,7 @@ fieldhash my %subgraph_count => 'subgraph_count';
 fieldhash my %verbose        => 'verbose';
 
 our $myself; # Is a copy of $self for functions called by Set::FA::Element.
-our $VERSION = '1.07';
+our $VERSION = '1.08';
 
 # --------------------------------------------------
 
@@ -748,7 +748,7 @@ sub save_prefix
 		# If the first token is '(di)graph' (i.e. there was no 'strict'),
 		# jam a 'strict' into the output stream.
 
-		if ($#{$myself -> items -> print} < 0)
+		if ($myself -> items -> length == 0)
 		{
 			$myself -> new_item('strict', 'no');
 		}

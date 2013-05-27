@@ -4,9 +4,9 @@
       "Ron Savage <ron@savage.net.au>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120630",
+   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.120921",
    "license" : [
-      "artistic_1"
+      "artistic_2"
    ],
    "meta-spec" : {
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
@@ -16,8 +16,7 @@
    "prereqs" : {
       "build" : {
          "requires" : {
-            "Test::More" : "0.98",
-            "Test::Pod" : "1.44"
+            "Test::More" : "0.98"
          }
       },
       "configure" : {
@@ -43,7 +42,6 @@
             "GraphViz2::Parse::Marpa" : "1.12",
             "HTML::Entities::Interpolate" : "1.04",
             "Hash::FieldHash" : "0.1",
-            "IO::File" : "1.14",
             "List::Compare" : "0.37",
             "Log::Handler" : "0.71",
             "Marpa::R2" : "2.022",
@@ -54,7 +52,7 @@
             "Set::Array" : "0.23",
             "Set::FA::Element" : "1.08",
             "Text::CSV" : "1.21",
-            "Text::CSV_XS" : "0.8",
+            "Text::CSV::Slurp" : "1",
             "Text::Xslate" : "1.4001",
             "Tree::DAG_Node" : "1.07",
             "Try::Tiny" : "0.09",
@@ -68,38 +66,38 @@
    "provides" : {
       "GraphViz2::Marpa" : {
          "file" : "lib/GraphViz2/Marpa.pm",
-         "version" : "1.07"
+         "version" : "1.08"
       },
       "GraphViz2::Marpa::Config" : {
          "file" : "lib/GraphViz2/Marpa/Config.pm",
-         "version" : "1.07"
+         "version" : "1.08"
       },
       "GraphViz2::Marpa::Lexer" : {
          "file" : "lib/GraphViz2/Marpa/Lexer.pm",
-         "version" : "1.07"
+         "version" : "1.08"
       },
       "GraphViz2::Marpa::Lexer::DFA" : {
          "file" : "lib/GraphViz2/Marpa/Lexer/DFA.pm",
-         "version" : "1.07"
+         "version" : "1.08"
       },
       "GraphViz2::Marpa::Parser" : {
          "file" : "lib/GraphViz2/Marpa/Parser.pm",
-         "version" : "1.07"
+         "version" : "1.08"
       },
       "GraphViz2::Marpa::Renderer::GraphViz2" : {
          "file" : "lib/GraphViz2/Marpa/Renderer/GraphViz2.pm",
-         "version" : "1.07"
+         "version" : "1.08"
       },
       "GraphViz2::Marpa::Utils" : {
          "file" : "lib/GraphViz2/Marpa/Utils.pm",
-         "version" : "1.07"
+         "version" : "1.08"
       }
    },
    "release_status" : "stable",
    "resources" : {
       "license" : [
-         "http://www.perlfoundation.org/artistic_license_1_0"
+         "http://www.perlfoundation.org/artistic_license_2_0"
       ]
    },
-   "version" : "1.07"
+   "version" : "1.08"
 }

@@ -8,8 +8,6 @@ use GraphViz2::Marpa::Utils;
 
 use Hash::FieldHash ':all';
 
-use IO::File;
-
 use Log::Handler;
 
 use Marpa::R2;
@@ -18,7 +16,7 @@ use Set::Array;
 
 use Tree::DAG_Node;
 
-use Text::CSV_XS;
+use Text::CSV::Slurp;
 
 use Try::Tiny;
 
@@ -44,7 +42,7 @@ fieldhash my %utils            => 'utils';
 # $myself is a copy of $self for use by functions called by Marpa.
 
 our $myself;
-our $VERSION = '1.07';
+our $VERSION = '1.08';
 
 # --------------------------------------------------
 # This is a function, not a method.
@@ -1071,7 +1069,7 @@ sub run
 
 	if ($#{$self -> tokens} < 0)
 	{
-		for my $record (@{$self -> utils -> read_csv_file($self -> lexed_file)})
+		for my $record (@{Text::CSV::Slurp -> new -> load(file => $self -> lexed_file, allow_whitespace => 1)})
 		{
 			$recognizer -> read($$record{type}, $$record{value});
 		}
