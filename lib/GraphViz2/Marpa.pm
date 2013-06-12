@@ -28,7 +28,7 @@ fieldhash my %stt_file      => 'stt_file';
 fieldhash my %timeout       => 'timeout';
 fieldhash my %type          => 'type';
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 # --------------------------------------------------
 
@@ -319,6 +319,10 @@ Convert all data/*.gv files to data/*.lex using lex.pl.
 =item o dot2rend.pl
 
 Convert all data/*.gv files to data/*.lex and data/*.parse and data/*.rend using lex.pl and parse.pl.
+
+=item o find.config.pl
+
+Print the path to the config file, as determined by L<File::ShareDir>'s dist_file().
 
 =item o g2m.pl
 
