@@ -75,8 +75,6 @@ requires 'File::ShareDir'              => 1.03;
 requires 'File::Slurp'                 => 9999.19;
 requires 'File::Temp'                  => 0.2301;
 requires 'Getopt::Long'                => 2.38;
-requires 'GraphViz2'                   => 1.09;
-requires 'GraphViz2::Parse::Marpa'     => 1.12;
 requires 'Hash::FieldHash'             => 0.10;
 requires 'HTML::Entities::Interpolate' => 1.04;
 requires 'List::Compare'               => 0.37;
@@ -97,7 +95,8 @@ requires 'Tree::DAG_Node'              => 1.07;
 requires 'Try::Tiny'                   => 0.09;
 requires 'warnings'                    => 0;
 
-test_requires 'Test::More' => 0.98;
-#test_requires 'Test::Pod'  => 1.45; # Make it optional. See t/pod.t
+test_requires 'Test::More'    => 0.98;
+test_requires 'Test::Version' => 1.002003;
+#test_requires 'Test::Pod'    => 1.45; # Make it optional. See t/pod.t
 
 WriteAll;
