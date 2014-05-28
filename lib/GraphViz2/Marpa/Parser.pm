@@ -42,7 +42,7 @@ fieldhash my %utils            => 'utils';
 # $myself is a copy of $self for use by functions called by Marpa.
 
 our $myself;
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
 # --------------------------------------------------
 # This is a function, not a method.
@@ -1103,7 +1103,7 @@ sub run
 	$self -> _build_tree;
 
 	# Combine edges into paths.
-	# This method occassinally gets into an infinite loop.
+	# This method occasionally gets into an infinite loop.
 
 	#$self -> _build_paths;
 

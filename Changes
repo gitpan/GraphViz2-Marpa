@@ -1,5 +1,9 @@
 Revision history for Perl extension GraphViz2::Marpa.
 
+1.13  Thu May 27 08:31:00 2014
+	- Remove t/version.t, and so remove Test::Version, since the latter fails when combined with Test::Pretty.
+		I do not use Test::Pretty, only Test::More.
+
 1.12  Fri Nov 29 08:55:00 2013
 	- Remove GraphViz2 from the pre-reqs. This module was not used.
 	- Remove GraphViz2::Parse::Marpa from the pre-reqs. This module no longer exists.
@@ -8,7 +12,7 @@ Revision history for Perl extension GraphViz2::Marpa.
 		See also the GraphViz2 Changes file entries for V 2.19 and V 2.15.
 	- Remove scripts/marpa.grammar2svg.pl. This script used GraphViz2::Parse::Marpa.
 	- Remove corresponding data/Marpa.Grammar.dat and html/Marpa.Grammar.svg.
-	- Add t/version.t, which Test::Version.
+	- Add t/version.t, which uses Test::Version.
 	- Move t/pod.t to xt/author.
 	- Update pre-reqs in Makefile.PL.
 	- Update MANIFEST.
