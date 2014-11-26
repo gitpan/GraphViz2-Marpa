@@ -1,45 +1,54 @@
 package GraphViz2::Marpa::Config;
 
 use strict;
+use utf8;
 use warnings;
+use warnings  qw(FATAL utf8);    # Fatalize encoding glitches.
+use open      qw(:std :utf8);    # Undeclared streams in UTF-8.
 
 use Config::Tiny;
 
-use File::ShareDir;
+use File::HomeDir;
+use File::Spec;
 
-use Hash::FieldHash ':all';
+use Moo;
 
-use Path::Tiny; # For path().
+has config =>
+(
+	default  => sub{return {} },
+	is       => 'rw',
+#	isa      => 'HashRef',
+	required => 0,
+);
 
-fieldhash my %config           => 'config';
-fieldhash my %config_file_path => 'config_file_path';
-fieldhash my %section          => 'section';
+has config_file_path =>
+(
+	default  => sub{return ''},
+	is       => 'rw',
+#	isa      => 'Str',
+	required => 0,
+);
 
-our $VERSION = '1.13';
+has section =>
+(
+	default  => sub{return ''},
+	is       => 'rw',
+#	isa      => 'Str',
+	required => 0,
+);
+
+our $VERSION = '2.00';
 
 # -----------------------------------------------
 
-sub _init
+sub BUILD
 {
-	my($self, $arg) = @_;
+	my($self) = @_;
+	my($path) = File::Spec -> catfile(File::HomeDir -> my_dist_config('GraphViz2-Marpa'), '.htgraphviz2.marpa.conf');
 
-	return from_hash($self, $arg);
+	$self -> read($path);
 
-} # End of _init.
-
-# -----------------------------------------------
-
-sub new
-{
-	my($class, %arg) = @_;
-    my($self)        = bless {}, $class;
-
-	$self -> _init(\%arg);
-	$self -> read(path(File::ShareDir::dist_dir('GraphViz2-Marpa'), '.htgraphviz2.marpa.conf') );
-
-    return $self;
-
-} # End of new.
+} # End of BUILD.
 
 # -----------------------------------------------
 
@@ -88,7 +97,7 @@ sub read
 
 =head1 NAME
 
-GraphViz2::Marpa::Config - A Perl lexer and parser for Graphviz dot files
+C<GraphViz2::Marpa::Config> - A config file helper for C<GraphViz2::Marpa>
 
 =head1 Synopsis
 
@@ -96,33 +105,51 @@ See L<GraphViz2::Marpa>.
 
 =head1 Description
 
-L<GraphViz2::Marpa> provides a Perl lexer and parser for Graphviz dot files.
+L<GraphViz2::Marpa> provides a Marpa-based parser for Graphviz C<dot> files,
+and this module helps finding and loading the config file, which in turn
+helps generate the demo page.
+
+This module is really only of interest to the author.
+
+=head1 Constructor and Initialization
+
+=head2 Calling new()
+
+C<new()> is called as C<< my($obj) = GraphViz2::Marpa::Config -> new(k1 => v1, k2 => v2, ...) >>.
+
+It returns a new object of type C<GraphViz2::Marpa::Config>.
+
+Key-value pairs accepted in the parameter list:
+
+=over 4
+
+=item o (none)
+
+=back
 
 =head1 Methods
 
-=head2 _init()
+=head2 read($path)
 
-For use by subclasses.
-
-Sets default values for object attributes.
-
-=head2 new()
-
-For use by subclasses.
-
-=head2 read()
-
-read() is called by new(). It does the actual reading of the config file.
+Uses $path to find and read the config file into a hashref. By default it assumes
+scripts/copy.config.pl has been run, and loads (effectively from config/),
+.htgraphviz2.marpa.conf.
 
 If the file can't be read, die is called.
 
-The path to the config file is determined by:
+See also scripts/copy.config.pl and scripts/find.config.pl.
 
-	Path::Tiny's path(File::ShareDir -> dist_dir('GraphViz2-Marpa'), '.htgraphviz2.marpa.conf')
+=head1 Machine-Readable Change Log
 
-During installation, Makefile.PL will have installed '.htgraphviz2.marpa.conf' in a shared directory.
+The file Changes was converted into Changelog.ini by L<Module::Metadata::Changes>.
 
-You can find it (perhaps for editing) by running scripts/find.config.pl.
+=head1 Version Numbers
+
+Version numbers < 1.00 represent development versions. From 1.00 up, they are production versions.
+
+=head1 Repository
+
+L<https://github.com/ronsavage/GraphViz2-Marpa>
 
 =head1 Support
 
@@ -142,7 +169,7 @@ Australian copyright (c) 2012, Ron Savage.
 
 	All Programs of mine are 'OSI Certified Open Source Software';
 	you can redistribute them and/or modify them under the terms of
-	The Artistic License, a copy of which is available at:
-	http://www.opensource.org/licenses/index.html
+	The Artistic License 2.0, a copy of which is available at:
+	http://opensource.org/licenses/alphabetical.
 
 =cut

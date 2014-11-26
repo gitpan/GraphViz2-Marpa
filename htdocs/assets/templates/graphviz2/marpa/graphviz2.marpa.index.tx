@@ -17,16 +17,22 @@
 
 <p>Some sample data is deliberately faulty, and so does not produce an image, or produces a faulty one (e.g. data/42.*.gv)</p>
 
-<p>The files with names like 90.*.gv are copies of the corresponding files *.gv from the <a href="http://www.graphviz.org/content/dot-language">Graphviz</a> distro.</p>
+: if ($authortest == 1) {
+	<p><span class = 'index'>Note:</span> This is the author tests page. The <a href = '../index.html'>standard tests page</a> is up 1 dir level</p>
+: }
+: else {
+	<p><span class = 'index'>Warning:</span> This is the standard tests page. The <a href = './authortest/index.html'>author tests page</a> is at least 20 times the size</p>
+: }
 
 <table border = "1">
 <tr>
-  <td>Result of GraphViz2::Marpa processing *.gv</td><td>Result of dot processing the same file</td>
+  <td>#</td><td>Result of GraphViz2::Marpa processing *.gv</td><td>Result of dot processing the same file</td>
 </tr>
 :for $data -> $row {
 <tr>
+  <td><: $row.count :></td>
   <td>
-	Input file <: $row.count :>: <: $row.input :> (<: $row.input_size :> <: $row.input_bytes :>). Lex result: <: $row.lex_result :>:<br /><: $row.raw :>
+	Input file: <: $row.input :> (<: $row.input_size :> <: $row.input_bytes :>):<br /><: $row.raw :>
   </td>
   <td>
 : if ($row.image_size > 0) {
@@ -43,11 +49,7 @@ Dot result: Error.<br />
 
 <h3 class="global_toc_text">Links</h3>
 
-<h2 align="center">Index page for <a href="http://savage.net.au/Graph-module-demos.html">all graph module demos</a></h2>
-
-<h2 align="center"><a href="http://savage.net.au/Perl-modules/html/graphviz2.marpa/code.attributes.html">Module and Script Attributes</a></h2>
-
-<h2 align="center"><a href="http://savage.net.au/Perl-modules/html/graphviz2.marpa/stt.html">State transition table</a></h2>
+<h2 align="center">Index page for <a href="http://savage.net.au/Graphviz.html">all graph module demos</a></h2>
 
 <hr />
 

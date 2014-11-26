@@ -1,6 +1,8 @@
+# Hash comment
+
 strict digraph graph_53
 {
-	label   = "Complex Syntax Test"
+	label   = "Complex\rSyntax\lTest"
 	rankdir = TB
 
 	A [shape = oval]

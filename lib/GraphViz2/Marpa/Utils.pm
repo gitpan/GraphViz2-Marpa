@@ -1,10 +1,14 @@
 package GraphViz2::Marpa::Utils;
 
-use feature qw/say unicode_strings/;
-use open qw(:std :utf8);
 use strict;
+use utf8;
 use warnings;
-use warnings qw(FATAL utf8);
+use warnings  qw(FATAL utf8);    # Fatalize encoding glitches.
+use open      qw(:std :utf8);    # Undeclared streams in UTF-8.
+
+use Algorithm::Diff;
+
+use Capture::Tiny 'capture';
 
 use Config;
 
@@ -12,282 +16,38 @@ use Date::Format; # For time2str().
 use Date::Simple;
 
 use File::Spec;
-use File::Slurp; # For read_dir() and read_file().
-
-# Apart from GraphViz2::Marpa::Config, the next 4 modules are 'use'd
-# in order to get them into @INC, where Module::Path finds them.
-# This means for the search for mutators to work, they need to be
-# both up-to-date and installed.
+use File::Temp;
 
 use GraphViz2::Marpa;
 use GraphViz2::Marpa::Config;
-use GraphViz2::Marpa::Lexer;
-use GraphViz2::Marpa::Lexer::DFA;
-use GraphViz2::Marpa::Parser;
-
-use Hash::FieldHash ':all';
 
 use HTML::Entities::Interpolate;
 
-use Module::Path 'module_path';
+use Moo;
 
-use Text::CSV;
-use Text::CSV::Slurp;
+use Path::Tiny;
+
 use Text::Xslate 'mark_raw';
 
-fieldhash my %config => 'config';
+use Types::Standard qw/Int HashRef Str/;
 
-our $VERSION = '1.13';
+has authortest =>
+(
+	default  => sub{return 0},
+	is       => 'rw',
+	isa      => Str,
+	required => 0,
+);
 
-# -----------------------------------------------
+has config =>
+(
+	default  => sub{return GraphViz2::Marpa::Config -> new -> config},
+	is       => 'rw',
+	isa      => HashRef,
+	required => 0,
+);
 
-sub generate_code_attributes_csv
-{
-	my($self, $heading)  = @_;
-	my(@script)          = grep{/pl$/} @$heading;
-	my($script_dir_name) = 'scripts';
-
-	my(@lines);
-	my(@mutators, %mutators);
-	my($name);
-	my($script_file_name);
-
-	for my $script (@script)
-	{
-		$script_file_name      = File::Spec -> catfile($script_dir_name, $script);
-		@lines                 = read_file($script_file_name, {chomp => 1});
-		@mutators              = grep{s/=.//; $_} grep{s/^\t'(.+)'.+/$1/; $1} @lines;
-		$mutators{$script}     = {} if (! $mutators{$script});
-		$mutators{$script}{$_} = 1 for @mutators;
-	}
-
-	my(@module)      = grep{/pm$/} @$heading;
-	my(%module_name) =
-	(
-		'DFA.pm'      => 'GraphViz2::Marpa::Lexer::DFA',
-		'Lexer.pm'    => 'GraphViz2::Marpa::Lexer',
-		'Marpa.pm'    => 'GraphViz2::Marpa',
-		'Parser.pm'   => 'GraphViz2::Marpa::Parser',
-		'Renderer.pm' => 'GraphViz2::Marpa::Renderer::GraphViz2',
-	);
-
-	my($module_file_name);
-
-	for my $module (@module)
-	{
-		$module_file_name      = module_path($module_name{$module}) || die "Unable to find $module\n";
-		@lines                 = read_file($module_file_name, {chomp => 1});
-		@mutators              = grep{s/=.//; $_} grep{s/^fieldhash my %([^\s]+).+/$1/; $1} @lines;
-		$mutators{$module}     = {} if (! $mutators{$module});
-		$mutators{$module}{$_} = 1 for @mutators;
-	}
-
-	my(%names);
-
-	for my $row (keys %mutators)
-	{
-		for my $column (keys %{$mutators{$row} })
-		{
-			$names{$column}{$row} = defined($mutators{$row}{$column}) ? 'Y' : '.';
-		}
-	}
-
-	my($data_dir_name)  = 'data';
-	my($code_file_name) = File::Spec -> catfile($data_dir_name, 'code.attributes.csv');
-	my($csv)            = Text::CSV -> new;
-
-	my($status);
-
-	open(OUT, '>', $code_file_name) || die "Can't open(> $code_file_name)";
-
-	$csv -> combine('Mutator', @$heading) || die "Can't combine headings\n";
-
-	print OUT $csv -> string, "\n";
-
-	my(@column);
-
-	for my $mutator (sort keys %names)
-	{
-		@column = ();
-
-		for $name (@$heading)
-		{
-			push @column, $mutator if ($#column < 0);
-			push @column, $names{$mutator}{$name};
-		}
-
-		$csv -> combine(@column) || die "Can't combine columns\n";
-
-		print OUT $csv -> string, "\n";
-	}
-
-	close OUT;
-
-} # End of generate_code_attributes_csv.
-
-# -----------------------------------------------
-
-sub generate_code_attributes_index
-{
-	my($self)    = @_;
-	my(@heading) = qw/lex.pl Lexer.pm DFA.pm parse.pl Parser.pm rend.pl g2m.pl Marpa.pm Renderer.pm/;
-
-	$self -> generate_code_attributes_csv(\@heading);
-
-	my($data_dir_name)   = 'data';
-	my($code_file_name)  = File::Spec -> catfile($data_dir_name, 'code.attributes.csv');
-	my($code_attributes) = Text::CSV::Slurp -> new -> load(file => $code_file_name, allow_whitespace => 1);
-
-	my($column, @column);
-	my(@row);
-
-	for $column ('Mutator', @heading)
-	{
-		push @column, {td => $column};
-	}
-
-	push @row, [@column];
-
-	for my $item (@$code_attributes)
-	{
-		@column = ();
-
-		for $column ('Mutator', @heading)
-		{
-			push @column, {td => $$item{$column} };
-		}
-
-		push @row, [@column];
-	}
-
-	@column = ();
-
-	for $column ('Mutator', @heading)
-	{
-		push @column, {td => $column};
-	}
-
-	push @row, [@column];
-
-	my($config)    = $self -> config;
-	my($templater) = Text::Xslate -> new
-	(
-		input_layer => '',
-		path        => $$config{template_path},
-	);
-	my($html_dir_name) = 'html';
-	my($file_name)     = File::Spec -> catfile($html_dir_name, 'code.attributes.html');
-
-	open(OUT, '>', $file_name);
-	print OUT $templater -> render
-	(
-	'code.attributes.tx',
-	{
-		border          => 1,
-		default_css     => "$$config{css_url}/default.css",
-		environment     => $self -> generate_demo_environment,
-		fancy_table_css => "$$config{css_url}/fancy.table.css",
-		title           => 'Code and Command Line Attributes for GraphViz2::Marpa',
-		row             => \@row,
-		summary         => 'Code attributes',
-		version         => $VERSION,
-	},
-	);
-	close OUT;
-
-	# Return 0 for success and 1 for failure.
-
-	return 0;
-
-} # End of generate_code_attributes_index.
-
-# -----------------------------------------------
-
-sub generate_demo_index
-{
-	my($self)          = @_;
-	my($data_dir_name) = 'data';
-	my($html_dir_name) = 'html';
-	my($format)        = 'svg';
-	my(@dot_file)      = $self -> get_files($data_dir_name, 'gv');
-
-	my(@content);
-	my($dot_file);
-	my($image_file, %image_file);
-	my($lex_file);
-
-	for my $file_name (@dot_file)
-	{
-		$dot_file               = File::Spec -> catfile($data_dir_name, "$file_name.gv");
-		$lex_file               = File::Spec -> catfile($data_dir_name, "$file_name.lex");
-		$image_file             = File::Spec -> catfile($html_dir_name, "$file_name.$format");
-		@content                = map{$Entitize{$_} } read_file($dot_file);
-		$image_file{$file_name} =
-		{
-			image_file   => -e $image_file ? $image_file : '',
-			image_size   => -e $image_file ? -s $image_file : 0,
-			input        => $dot_file,
-			input_bytes  => 'byte' . (-s $dot_file == 1 ? '' : 's'),
-			input_size   => -s $dot_file,
-			lex_result   => -e $lex_file ? 'OK' : 'Error',
-			object_file  => "./$file_name.$format",
-			output       => -e $image_file && -s $image_file ? $image_file : '',
-			output_bytes => 'byte' . (-e $image_file && -s $image_file == 1 ? '' : 's'),
-			output_size  => -s $image_file,
-			raw          => join('<br />', @content),
-		};
-	}
-
-	my($config)    = $self -> config;
-	my($templater) = Text::Xslate -> new
-	(
-		input_layer => '',
-		path        => $$config{template_path},
-	);
-	my($count) = 0;
-	my($index) = $templater -> render
-	(
-	'graphviz2.marpa.index.tx',
-	{
-		data =>
-		[
-			map
-			{
-				{
-					count        => ++$count,
-					image_file   => mark_raw($image_file{$_}{image_file}),
-					image_size   => $image_file{$_}{image_size},
-					input        => mark_raw($image_file{$_}{input}),
-					input_bytes  => $image_file{$_}{input_bytes},
-					input_size   => mark_raw($image_file{$_}{input_size}),
-					lex_result   => $image_file{$_}{lex_result},
-					object_file  => $image_file{$_}{object_file},
-					output       => mark_raw($image_file{$_}{output}),
-					output_bytes => $image_file{$_}{output_bytes},
-					output_size  => $image_file{$_}{output_size},
-					raw          => mark_raw($image_file{$_}{raw}),
-				}
-			} @dot_file
-		],
-		default_css     => "$$config{css_url}/default.css",
-		environment     => $self -> generate_demo_environment,
-		fancy_table_css => "$$config{css_url}/fancy.table.css",
-		version         => $VERSION,
-	}
-	);
-	my($file_name) = File::Spec -> catfile($html_dir_name, 'index.html');
-
-	open(OUT, '>', $file_name);
-	print OUT $index;
-	close OUT;
-
-	print "Wrote: $file_name\n";
-
-	# Return 0 for success and 1 for failure.
-
-	return 0;
-
-} # End of generate_demo_index.
+our $VERSION = '2.00';
 
 # ------------------------------------------------
 
@@ -309,46 +69,49 @@ sub generate_demo_environment
 
 } # End of generate_demo_environment.
 
-# ------------------------------------------------
+# -----------------------------------------------
 
-sub generate_stt_index
+sub generate_demo_index
 {
-	my($self) = @_;
-	my(@heading)       = qw/Start Accept State Event Next Entry Exit Regexp Interpretation/;
+	my($self)          = @_;
+	my($format)        = 'svg';
 	my($data_dir_name) = 'data';
-	my($stt_file_name) = File::Spec -> catfile($data_dir_name, 'default.stt.csv');
-	my($stt)           = Text::CSV::Slurp -> new -> load(file => $stt_file_name, allow_whitespace => 1);
+	my($html_dir_name) = 'html';
 
-	my($column, @column);
-	my(@row);
-
-	for $column (@heading)
+	if ($self -> authortest)
 	{
-		push @column, {td => $column};
+		$data_dir_name = "xt/author/$data_dir_name";
+		$html_dir_name = "xt/author/$html_dir_name";
 	}
 
-	push @row, [@column];
+	my(@dot_file) = $self -> get_files($data_dir_name, 'gv');
 
-	for my $item (@$stt)
+	my(@content);
+	my($dot_file);
+	my($image_file, %image_file);
+	my($object_file);
+
+	for my $file_name (@dot_file)
 	{
-		@column = ();
-
-		for $column (@heading)
+		$dot_file               = "$file_name.gv";
+		$image_file             = path("$file_name.$format") -> basename;
+		$image_file             = File::Spec -> catfile($html_dir_name, $image_file);
+		@content                = map{$Entitize{$_} } path($dot_file) -> lines_utf8;
+		$object_file            = './' . path("$file_name.svg") -> basename;
+		$image_file{$file_name} =
 		{
-			push @column, {td => mark_raw($$item{$column} || '.')};
-		}
-
-		push @row, [@column];
+			image_file   => -e $image_file ? $image_file : '',
+			image_size   => -e $image_file ? -s $image_file : 0,
+			input        => $dot_file,
+			input_bytes  => 'byte' . (-s $dot_file == 1 ? '' : 's'),
+			input_size   => -s $dot_file,
+			object_file  => $object_file,
+			output       => -e $image_file && -s $image_file ? $image_file : '',
+			output_bytes => 'byte' . (-e $image_file && -s $image_file == 1 ? '' : 's'),
+			output_size  => -s $image_file,
+			raw          => join('<br />', @content),
+		};
 	}
-
-	@column = ();
-
-	for $column (@heading)
-	{
-		push @column, {td => $column};
-	}
-
-	push @row, [@column];
 
 	my($config)    = $self -> config;
 	my($templater) = Text::Xslate -> new
@@ -356,31 +119,53 @@ sub generate_stt_index
 		input_layer => '',
 		path        => $$config{template_path},
 	);
-	my($html_dir_name) = 'html';
-	my($file_name)     = File::Spec -> catfile($html_dir_name, 'stt.html');
-
-	open(OUT, '>', $file_name) || die "Can't open(> $file_name): $!";
-	print OUT $templater -> render
+	my($count) = 0;
+	my($index) = $templater -> render
 	(
-	'stt.tx',
+	'graphviz2.marpa.index.tx',
 	{
-		border          => 1,
+		authortest => $self -> authortest,
+		data       =>
+		[
+			map
+			{
+				{
+					count        => ++$count,
+					image_file   => mark_raw($image_file{$_}{image_file}),
+					image_size   => $image_file{$_}{image_size},
+					input        => mark_raw($image_file{$_}{input}),
+					input_bytes  => $image_file{$_}{input_bytes},
+					input_size   => mark_raw($image_file{$_}{input_size}),
+					object_file  => $image_file{$_}{object_file},
+					output       => mark_raw($image_file{$_}{output}),
+					output_bytes => $image_file{$_}{output_bytes},
+					output_size  => $image_file{$_}{output_size},
+					raw          => mark_raw($image_file{$_}{raw}),
+				}
+			} @dot_file
+		],
 		default_css     => "$$config{css_url}/default.css",
 		environment     => $self -> generate_demo_environment,
 		fancy_table_css => "$$config{css_url}/fancy.table.css",
-		title           => 'State Transition Table for GraphViz2::Marpa::Lexer',
-		row             => \@row,
-		summary         => 'STT',
 		version         => $VERSION,
-	},
+	}
 	);
-	close OUT;
+
+	print "Finished rendering. \n";
+
+	my($file_name) = File::Spec -> catfile($html_dir_name, 'index.html');
+
+	open(my $fh, '>:encoding(utf-8)', $file_name);
+	print $fh $index;
+	close $fh;
+
+	print "Wrote: $file_name\n";
 
 	# Return 0 for success and 1 for failure.
 
 	return 0;
 
-} # End of generate_stt_index.
+} # End of generate_demo_index.
 
 # ------------------------------------------------
 
@@ -388,21 +173,9 @@ sub get_files
 {
 	my($self, $dir_name, $type) = @_;
 
-	return (sort map{s/\.$type//; $_} grep{/\.$type$/} read_dir $dir_name);
+	return (sort map{s/\.$type//; $_} grep{/\.$type$/} path($dir_name) -> children);
 
 } # End of get_files.
-
-# -----------------------------------------------
-
-sub _init
-{
-	my($self, $arg) = @_;
-	$$arg{config}   = GraphViz2::Marpa::Config -> new -> config;
-	$self           = from_hash($self, $arg);
-
-	return $self;
-
-} # End of _init.
 
 # --------------------------------------------------
 
@@ -427,6 +200,41 @@ sub new
 
 }	# End of new.
 
+# ------------------------------------------------
+
+sub perform_1_test
+{
+	my($self, $file_name) = @_;
+
+# The EXLOCK option is for BSD-based systems.
+
+	my($temp_dir)      = File::Temp -> newdir('temp.XXXX', CLEANUP => 1, EXLOCK => 0, TMPDIR => 1);
+	my($temp_dir_name) = $temp_dir -> dirname;
+	my($data_dir_name) = 'data';
+	my($html_dir_name) = $temp_dir_name;
+	my($in_suffix)     = 'gv';
+	my($out_suffix)    = 'gv';
+
+	my(@new_svg, $new_svg);
+	my(@old_svg, $old_svg);
+
+	my($in_file)                 = File::Spec -> catfile($data_dir_name, "$file_name.$in_suffix");
+	my($out_file)                = File::Spec -> catfile($temp_dir_name, "$file_name.$out_suffix");
+	my($stdout, $stderr, $exit)  = capture{system $^X, '-Ilib', 'scripts/g2m.pl', '-input_file', $in_file, '-output_file', $out_file};
+
+	# Unfortunately, we can't die, because for invalid DOT files there cannot be an output file.
+
+	#die "Error: g2m.pl did not create an output *.gv file\n" if (! -e $out_file);
+
+	($old_svg, $stderr, $exit)   = capture{system 'dot', '-Tsvg', $in_file};
+	@old_svg                     = split(/\n/, $old_svg);
+	($new_svg, $stderr, $exit)   = capture{system 'dot', '-Tsvg', $out_file};
+	@new_svg                     = split(/\n/, $new_svg);
+
+	return Algorithm::Diff -> new(\@old_svg, \@new_svg);
+
+} # End of perform_1_test.
+
 # -----------------------------------------------
 
 1;
@@ -435,15 +243,18 @@ sub new
 
 =head1 NAME
 
-L<GraphViz2::Marpa::Utils> - A Perl lexer and parser for Graphviz dot files
+C<GraphViz2::Marpa::Utils> - A demo page generator for C<GraphViz2::Marpa>
 
 =head1 Synopsis
 
-See scripts/generate.index.pl, and scripts/dot2lex.pl etc.
+See L<GraphViz2::Marpa/Synopsis>.
 
 =head1 Description
 
-Some utils to simplify reading CSV files, and testing.
+L<GraphViz2::Marpa> provides a Marpa-based parser for Graphviz C<dot> files,
+and this module helps generate the demo page.
+
+This module is really only of interest to the author.
 
 =head1 Distributions
 
@@ -490,25 +301,13 @@ Key-value pairs accepted in the parameter list:
 
 =over 4
 
-=item o (none)
+=item o authortest => $Boolean
+
+This allows generate.demo.pl to control whether it's processing data/ ot xt/author/data/.
 
 =back
 
 =head1 Methods
-
-=head2 generate_code_attributes_csv()
-
-Generate data/code.attributes.csv, for conversion into html/code.attributes.html.
-
-=head2 generate_code_attributes_index()
-
-Generate html/code.attributes.html.
-
-=head2 generate_demo_index()
-
-Generates html/index.html.
-
-Does not run any programs to generate other files, e.g. html/*.svg. See scripts/generate.demo.sh for that.
 
 =head2 generate_demo_environment()
 
@@ -518,9 +317,11 @@ Generates a table to be inserted into html/index.html.
 
 See scripts/generate.demo.pl.
 
-=head2 generate_stt_index()
+=head2 generate_demo_index()
 
-Generate html/stt.html.
+Generates html/index.html.
+
+Does not run any programs to generate other files, e.g. html/*.svg. See scripts/generate.demo.sh for that.
 
 =head2 get_files($dir_name, $type)
 
@@ -534,13 +335,24 @@ Right justify the $string in a field of 20 spaces.
 
 See L</Constructor and Initialization> for details on the parameters accepted by L</new()>.
 
-=head1 Version Numbers
+=head2 perform_1_test($file_name)
 
-Version numbers < 1.00 represent development versions. From 1.00 up, they are production versions.
+Run C<dot> on the input file, and run C<g2m.pl> on it, and run C<dot> on the output file, and compare
+the outputs of the 2 svg files.
+
+Used by scripts/test.html.pl and t/test.t.
 
 =head1 Machine-Readable Change Log
 
 The file CHANGES was converted into Changelog.ini by L<Module::Metadata::Changes>.
+
+=head1 Version Numbers
+
+Version numbers < 1.00 represent development versions. From 1.00 up, they are production versions.
+
+=head1 Repository
+
+L<https://github.com/ronsavage/GraphViz2-Marpa>
 
 =head1 Support
 
@@ -560,7 +372,7 @@ Australian copyright (c) 2012, Ron Savage.
 
 	All Programs of mine are 'OSI Certified Open Source Software';
 	you can redistribute them and/or modify them under the terms of
-	The Artistic License, a copy of which is available at:
-	http://www.opensource.org/licenses/index.html
+	The Artistic License 2.0, a copy of which is available at:
+	http://opensource.org/licenses/alphabetical.
 
 =cut

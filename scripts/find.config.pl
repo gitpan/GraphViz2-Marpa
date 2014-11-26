@@ -3,13 +3,16 @@
 use strict;
 use warnings;
 
-use File::ShareDir;
+use File::HomeDir;
+use File::Spec;
 
 # --------------
 
-my($app_name)    = 'GraphViz2-Marpa';
+my($module)      = 'GraphViz2::Marpa';
+my($module_dir)  = $module;
+$module_dir      =~ s/::/-/g;
 my($config_name) = '.htgraphviz2.marpa.conf';
-my($path)        = File::ShareDir::dist_file($app_name, $config_name);
+my($path)        = File::Spec -> catfile(File::HomeDir -> my_dist_config($module_dir), $config_name);
 
-print "Using: File::ShareDir::dist_file('$app_name', '$config_name'): \n";
+print "Using: File::HomeDir -> my_dist_config('$module_dir', '$config_name'): \n";
 print "Found: $path\n";

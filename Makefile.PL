@@ -1,11 +1,14 @@
+use strict;
+use warnings;
+
 use Config;
 
 use ExtUtils::MakeMaker;
 
-use inc::Module::Install;
-
 use File::Spec;
 use File::Temp;
+
+require 5.014002; # For the utf8 stuff.
 
 # -----------------------------------------------
 
@@ -38,65 +41,91 @@ sub is_dot_installed
 
 # -----------------------------------------------
 
-sub is_perl_recent
-{
-	# We want Perl V 5.12 or later, because we 'use feature qw/say unicode_strings/'.
-
-	my(@version) = split(/\./, $Config{version});
-
-	die "Please install Perl V 5.12 or later\n" if ($version[1] < 12);
-
-} # End of is_perl_recent.
-
-# -----------------------------------------------
-
 is_dot_installed();
-is_perl_recent();
 
-name 'GraphViz2-Marpa';
+# See lib/ExtUtils/MakeMaker.pm for details of how to influence
+# the contents of the Makefile that is written.
 
-license 'artistic_2';
+my(%params) =
+(
+	($] ge '5.005') ?
+	(
+		AUTHOR   => 'Ron Savage (ron@savage.net.au)',
+		ABSTRACT => 'A Marpa-based parser for Graphviz dot files',
+	) : (),
+	clean =>
+	{
+		FILES => 'blib/* Makefile MANIFEST GraphViz2-Marpa-*'
+	},
+	dist =>
+	{
+		COMPRESS => 'gzip',
+		SUFFIX   => 'gz'
+	},
+	DISTNAME  => 'GraphViz2-Marpa',
+	NAME      => 'GraphViz2::Marpa',
+	PL_FILES  => {},
+	PREREQ_PM =>
+	{
+		'Algorithm::Diff'             => 1.1902,
+		'Capture::Tiny'               => 0.25,
+		'Config'                      => undef,
+		'Config::Tiny'                => 2.14,
+		'Date::Format'                => 2.24,
+		'Date::Simple'                => 3.03,
+		'File::Basename'              => 2.84,
+		'File::Copy'                  => 2.26,
+		'File::HomeDir'               => 1.00,
+		'File::Spec'                  => 3.40,
+		'File::Temp'                  => 0.2301,
+		'Getopt::Long'                => 2.38,
+		'HTML::Entities::Interpolate' => 1.04,
+		'Log::Handler'                => 0.71,
+		'Marpa::R2'                   => 2.096000,
+		'Moo'                         => 1.006000,
+		'open'                        => 0, # For writing utf8 node etc names.
+		'Path::Iterator::Rule'        => 1.008,
+		'Path::Tiny'                  => 0.061,
+		'perl'                        => 5.014002,
+		'Pod::Usage'                  => 1.36,
+		'strict'                      => 0,
+		'Test::More'                  => 1.001006,
+#		'Test::Pod'                   => 1.45, # Make it optional. See xt/author/pod.t
+		'Text::Xslate'                => 1.4001,
+		'Tree::DAG_Node'              => 1.07,
+		'Try::Tiny'                   => 0.09,
+		'Types::Standard'             => 1.000004,
+		'utf8'                        => 0,
+		'warnings'                    => 0,
+	},
+	VERSION_FROM => 'lib/GraphViz2/Marpa.pm',
+);
 
-perl_version '5.014000';
+if ( ($ExtUtils::MakeMaker::VERSION =~ /^\d\.\d\d$/) && ($ExtUtils::MakeMaker::VERSION > 6.30) )
+{
+	$params{LICENSE} = 'artistic_2';
+}
 
-all_from 'lib/GraphViz2/Marpa.pm';
+if ($ExtUtils::MakeMaker::VERSION ge '6.46')
+{
+	$params{META_MERGE} =
+	{
+		'meta-spec' =>
+		{
+			version => 2,
+		},
+		resources   =>
+		{
+			bugtracker => 'https://rt.cpan.org/Public/Dist/Display.html?Name=GraphViz2-Marpa',
+			license    => 'http://opensource.org/licenses/Artistic-2.0',
+			repository =>
+			{
+				type => 'git',
+				url  => 'https://github.com/ronsavage/GraphViz2-Marpa.git',
+				web  => 'https://github.com/ronsavage/GraphViz2-Marpa',
+			},
+		},
+	};
+}
 
-install_share;
-
-requires 'Algorithm::Diff'             => 1.1902;
-requires 'Config'                      => undef;
-requires 'Config::Tiny'                => 2.14;
-requires 'Data::Section::Simple'       => 0.02;
-requires 'Date::Format'                => 2.24;
-requires 'Date::Simple'                => 3.03;
-requires 'feature'                     => 0;
-requires 'File::Spec'                  => 3.40;
-requires 'File::ShareDir'              => 1.03;
-requires 'File::Slurp'                 => 9999.19;
-requires 'File::Temp'                  => 0.2301;
-requires 'Getopt::Long'                => 2.38;
-requires 'Hash::FieldHash'             => 0.10;
-requires 'HTML::Entities::Interpolate' => 1.04;
-requires 'List::Compare'               => 0.37;
-requires 'Log::Handler'                => 0.71;
-requires 'Marpa::R2'                   => 2.022000;
-requires 'Module::Path'                => 0.08;
-requires 'open'                        => 0;
-requires 'Path::Tiny'                  => 0.022;
-requires 'Perl6::Slurp'                => 0.03;
-requires 'Pod::Usage'                  => 1.36;
-requires 'Set::Array'                  => 0.23;
-requires 'Set::FA::Element'            => 1.08;
-requires 'strict'                      => 0;
-requires 'Text::CSV'                   => 1.21;
-requires 'Text::CSV::Slurp'            => 1;
-requires 'Text::Xslate'                => 1.4001;
-requires 'Tree::DAG_Node'              => 1.07;
-requires 'Try::Tiny'                   => 0.09;
-requires 'warnings'                    => 0;
-
-test_requires 'Test::More'     => 0.98;
-#test_requires 'Test::Version' => 1.002003;
-#test_requires 'Test::Pod'     => 1.45; # Make it optional. See t/pod.t
-
-WriteAll;
+WriteMakefile(%params);
