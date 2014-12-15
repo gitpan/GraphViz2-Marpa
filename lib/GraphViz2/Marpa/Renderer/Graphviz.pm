@@ -1,10 +1,9 @@
 package GraphViz2::Marpa::Renderer::Graphviz;
 
 use strict;
-use utf8;
 use warnings;
-use warnings  qw(FATAL utf8);    # Fatalize encoding glitches.
-use open      qw(:std :utf8);    # Undeclared streams in UTF-8.
+use warnings qw(FATAL utf8); # Fatalize encoding glitches.
+use open     qw(:std :utf8); # Undeclared streams in UTF-8.
 
 use Log::Handler;
 
@@ -53,7 +52,7 @@ has tree =>
 );
 
 
-our $VERSION = '2.01';
+our $VERSION = '2.03';
 
 # --------------------------------------------------
 
@@ -101,15 +100,26 @@ sub format_node
 	{
 		$$opts{previous}{attribute_count}++;
 
-		$indent    = ' ';
-		$value     = qq("$value") if ( ($value !~ /^<.+>$/s) && ($value !~ /^".*"/) );
+		$value = qq("$value") if ( ($value !~ /^<.+>$/s) && ($value !~ /^".*"/) );
 
 		# Separate nodes and graph attrs.
 
 		if ($$opts{previous}{name} eq 'node_id')
 		{
-			$indent    = "\t" x ($depth - 2);
 			$dot_input .= "\n";
+		}
+
+		if ($$opts{previous}{value} eq '[')
+		{
+			$indent = '';
+		}
+		elsif ($$opts{previous}{name} eq 'attribute')
+		{
+			$indent = ' ';
+		}
+		else
+		{
+			$indent = "\t" x ($depth - 2);
 		}
 
 		$dot_input .= "$indent$type = $value";
@@ -123,7 +133,6 @@ sub format_node
 	}
 	elsif ($name eq 'edge_id')
 	{
-		$indent    = "\t" x ($depth - 2);
 		$dot_input .= " $value";
 	}
 	elsif ($name eq 'literal')
@@ -151,26 +160,26 @@ sub format_node
 		elsif ($type eq 'subgraph_literal')
 		{
 			$indent    = "\t" x ($depth - 2);
-			$dot_input .= "$indent$value ";
+			$dot_input .= "\n" if ($$opts{previous}{name} eq 'attribute');
+			$dot_input .= "\n$indent$value ";
 		}
 		else
 		{
 			die "Rendering error: Unknown literal. $message";
 		}
 	}
-	elsif ($name eq 'node_id')
+	elsif ($name =~ /(?:graph_id|node_id)/)
 	{
 		$indent    = "\t" x ($depth - 2);
-		$indent    = ''    if ($$opts{previous}{type} eq 'subgraph_literal');    # Seperate 'subgraph' and its name.
 		$dot_input .= "\n" if ($$opts{previous}{name} =~ /(?:attribute|class)/); # Separate classes and attrs.
 
 		if ($$opts{previous}{name} eq 'edge_id')
 		{
 			$indent = ' '; # Don't separate nodes and edges.
 		}
-		elsif ($$opts{previous}{type} =~ /(?:digraph|graph|subgraph)_literal/)
+		elsif ($$opts{previous}{type} =~ /(?:digraph|graph)_literal/)
 		{
-			$indent = ''; # Don't separate nodes and 'digraph', 'graph' or 'subgraph'.
+			$indent = ''; # Don't separate nodes and 'digraph' or 'graph'.
 		}
 		elsif ($$opts{previous}{name} ne 'literal')
 		{
@@ -178,6 +187,10 @@ sub format_node
 		}
 
 		$dot_input .= "$indent$value";
+	}
+	elsif ($name eq 'subgraph_id')
+	{
+		$dot_input .= " $value";
 	}
 	elsif (! $ignore{$name})
 	{
@@ -240,6 +253,8 @@ sub run
 		open(my $fh, '> :encoding(utf-8)', $output_file) || die "Can't open(> $output_file): $!";
 		print $fh $$previous{dot_input};
 		close $fh;
+
+		$self -> log(info => "Rendered file: $output_file");
 	}
 
 	# Return 0 for success and 1 for failure.

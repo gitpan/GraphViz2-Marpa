@@ -1,10 +1,9 @@
 package GraphViz2::Marpa::Config;
 
 use strict;
-use utf8;
 use warnings;
-use warnings  qw(FATAL utf8);    # Fatalize encoding glitches.
-use open      qw(:std :utf8);    # Undeclared streams in UTF-8.
+use warnings qw(FATAL utf8); # Fatalize encoding glitches.
+use open     qw(:std :utf8); # Undeclared streams in UTF-8.
 
 use Config::Tiny;
 
@@ -37,7 +36,7 @@ has section =>
 	required => 0,
 );
 
-our $VERSION = '2.01';
+our $VERSION = '2.03';
 
 # -----------------------------------------------
 

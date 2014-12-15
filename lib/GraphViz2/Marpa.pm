@@ -1,10 +1,9 @@
 package GraphViz2::Marpa;
 
 use strict;
-use utf8;
 use warnings;
-use warnings  qw(FATAL utf8);    # Fatalize encoding glitches.
-use open      qw(:std :utf8);    # Undeclared streams in UTF-8.
+use warnings qw(FATAL utf8); # Fatalize encoding glitches.
+use open     qw(:std :utf8); # Undeclared streams in UTF-8.
 
 use GraphViz2::Marpa::Renderer::Graphviz;
 
@@ -182,7 +181,7 @@ has uid =>
 	required => 0,
 );
 
-our $VERSION = '2.01';
+our $VERSION = '2.03';
 
 # ------------------------------------------------
 
@@ -305,7 +304,7 @@ subgraph_no_sub_no_id	::=	graph_statement
 
 subgraph_prefix			::= subgraph_literal
 
-subgraph_id_token		::= node_name
+subgraph_id_token		::= subgraph_id
 
 # Lexemes in alphabetical order.
 # Quoted string handling copied from Marpa::R2's metag.bnf.
@@ -359,6 +358,9 @@ strict_literal			~ 'strict':i
 string					~ [\"]	double_quoted_char_set	[\"]
 string					~ '<'	html_quoted_char_set	'>'
 string					~ unquoted_char_set
+
+:lexeme					~ subgraph_id			pause => before		event => subgraph_id
+subgraph_id				~ string
 
 :lexeme					~ subgraph_literal		pause => before		event => subgraph_literal
 subgraph_literal		~ 'subgraph':i
@@ -477,7 +479,7 @@ END_OF_GRAMMAR
 	# Since $self -> stack has not been initialized yet,
 	# we can't call _add_daughter() until after this statement.
 
-	$self -> tree(Tree::DAG_Node -> new({name => 'root', attributes => {type => 'root_literal', uid => $self -> uid, value => 'root'} }));
+	$self -> tree(Tree::DAG_Node -> new({name => 'root', attributes => {name => 'root', port => '', type => 'root_literal', uid => $self -> uid, value => 'root'} }));
 	$self -> stack([$self -> tree -> root]);
 
 	for my $name (qw/prolog graph/)
@@ -504,19 +506,20 @@ END_OF_GRAMMAR
 sub _add_daughter
 {
 	my($self, $name, $attributes)  = @_;
-	$$attributes{uid} = $self -> uid($self -> uid + 1);
-	my($node)         = Tree::DAG_Node -> new({name => $name, attributes => $attributes});
-	my($stack)        = $self -> stack;
+	my(@name)          = $self -> decode_port_compass($$attributes{value});
+	$$attributes{name} = $name[0];
+	$$attributes{port} = $name[1];
+	$$attributes{uid}  = $self -> uid($self -> uid + 1);
+	my($node)          = Tree::DAG_Node -> new({name => $name, attributes => $attributes});
+	my($stack)         = $self -> stack;
 
 	$$stack[$#$stack] -> add_daughter($node);
-
-	#$self -> _dump_stack('End of _add_daughter()');
 
 } # End of _add_daughter.
 
 # ------------------------------------------------
 
-sub check4embedded_separator
+sub _check4embedded_separator
 {
 	my($self, $lexeme, $pos) = @_;
 
@@ -538,7 +541,7 @@ sub check4embedded_separator
 
 	return ($lexeme, $pos);
 
-} # End of check4embedded_separator.
+} # End of _check4embedded_separator.
 
 # ------------------------------------------------
 
@@ -547,10 +550,13 @@ sub clean_after
 	my($self, $s) = @_;
 
 	# The grammar allows things like 'xyz,', so clean them up.
+	# Also, trim spaces and then double-quotes. The reason for doing things in this order
+	# is that the user might have written "  X  ", so we don't remove the quotes first.
 
 	substr($s, -1, 1) = '' if (substr($s, -1, 1) eq ',');
 	$s                =~ s/^\s+//;
 	$s                =~ s/\s+$//;
+	$s                =~ s/"(.*)"/$1/;
 
 	return $s;
 
@@ -574,7 +580,96 @@ sub clean_before
 
 # ------------------------------------------------
 
-sub decode_result
+sub decode_node
+{
+	my($self, $node) = @_;
+	my($attributes)  = $node -> attributes;
+
+	return
+	{
+		id    => $node -> name,
+		name  => $$attributes{name},
+		port  => $$attributes{port},
+		type  => $$attributes{type},
+		uid   => $$attributes{uid},
+		value => $$attributes{value},
+	};
+
+} # End of decode_node.
+
+# --------------------------------------------------
+
+sub decode_port_compass
+{
+	my($self, $name) = @_;
+
+	# Remove :port:compass, if any, from name.
+	# But beware Perl-style node names like 'A::Class'.
+	# The (?=.) means there must be something after the last ':',
+	# which means we don't split 'A:' or 'A::'.
+
+	my(@field) = split(/(:(?!:)(?=.))/, $name);
+	$field[0]  = $name if ($#field < 0);
+
+	# Restore Perl module names:
+	# o A: & : & B to A::B.
+	# o A: & : B: & : & C to A::B::C.
+
+	while ( ($field[0] =~ /:$/) && ($#field >= 2) )
+	{
+		splice(@field, 0, 3, "$field[0]:$field[2]");
+	}
+
+	# Restore:
+	# o : & port to :port.
+	# o : & port & : & compass to :port:compass.
+
+	splice(@field, 1, $#field, join('', @field[1 .. $#field]) ) if ($#field > 0);
+
+	my(@result);
+
+	if ($#field == 0)
+	{
+		@result = ($name, '');
+	}
+	else
+	{
+		@result = ($field[0], join('', @field[1 .. $#field]) );
+	}
+
+	return @result;
+
+} # End of decode_port_compass.
+
+# ------------------------------------------------
+
+sub decode_tree
+{
+	my($self, $tree) = @_;
+	my($prolog) =
+	{
+		digraph => 'digraph',
+		strict  => '',
+	};
+
+	# Examine the daughters of the prolog to find the digraph/graph and strict attributes.
+
+	my($node_id);
+
+	for my $node ( ($tree -> daughters)[0] -> daughters)
+	{
+		$node_id          = $self -> decode_node($node);
+		$$prolog{digraph} = 'graph'   if ($$node_id{name} eq 'graph');
+		$$prolog{strict}  = 'strict ' if ($$node_id{name} eq 'strict');
+	}
+
+	return $prolog;
+
+} # End of decode_tree.
+
+# ------------------------------------------------
+
+sub _decode_result
 {
 	my($self, $result) = @_;
 	my(@worklist)      = $result;
@@ -609,7 +704,7 @@ sub decode_result
 
 	return join('', @stack);
 
-} # End of decode_result.
+} # End of _decode_result.
 
 # ------------------------------------------------
 
@@ -619,13 +714,13 @@ sub _dump_stack
 
 	$self -> log(info => "\tStack @ $caller");
 
-	my($attributes);
+	my($node_id);
 
 	for my $item (@{$self -> stack})
 	{
-		$attributes = $item -> attributes;
+		$node_id = $self -> decode_node($item);
 
-		$self -> log(info => "\tUid: $$attributes{uid}. Name: " . $item -> name);
+		$self -> log(info => "\tUid: $$node_id{uid}. Id: $$node_id{id}. Name: $$node_id{name}");
 	}
 
 	$self -> log(debug => join("\n", @{$self -> tree -> tree2string}) );
@@ -699,44 +794,6 @@ sub next_few_chars
 
 # ------------------------------------------------
 
-sub _post_process
-{
-	my($self) = @_;
-
-	# Walk the tree, find the edges, and stockpile uids of interest.
-	# The Tree::DAG_Node docs warn against modifying the tree during a walk,
-	# so we use a hash to track uids found, and post-process them.
-
-	my($attributes);
-	my($uid, %uid);
-
-	$self -> tree -> walk_down
-	({
-		callback => sub
-		{
-			my($node) = @_;
-			my($name) = $node -> name;
-
-			# Stash uids for later processing.
-
-			if ($name eq 'edge_id')
-			{
-				$attributes  = $node -> mother -> attributes;
-				$uid         = $$attributes{uid};
-				$uid{$uid}   = $node;
-			}
-
-			# Keep walking.
-
-			return 1;
-		},
-		_depth => 0,
-	});
-
-} # End of _post_process.
-
-# ------------------------------------------------
-
 sub _process
 {
 	my($self)          = @_;
@@ -761,7 +818,7 @@ sub _process
 	my($lexeme);
 	my($node_name);
 	my($original_lexeme);
-	my($span, $start, $s);
+	my($span, $start, $s, $stack);
 	my($temp, $type);
 
 	# We use read()/lexeme_read()/resume() because we pause at each lexeme.
@@ -832,7 +889,7 @@ sub _process
 					substr($lexeme, -1, 1) = '';
 				}
 
-				($lexeme, $pos) = $self -> check4embedded_separator($lexeme, $pos);
+				($lexeme, $pos) = $self -> _check4embedded_separator($lexeme, $pos);
 				$lexeme         = $self -> clean_after($lexeme);
 				$s              = $self -> next_few_chars($string, $pos);
 
@@ -866,7 +923,7 @@ sub _process
 		}
 		elsif ($event_name eq 'directed_edge')
 		{
-			$self -> _add_daughter('edge_id', {name => $event_name, value => $lexeme});
+			$self -> _add_daughter('edge_id', {type => $event_name, value => $lexeme});
 		}
 		elsif ($event_name eq 'node_name')
 		{
@@ -920,6 +977,11 @@ sub _process
 			else
 			{
 				$type = 'node_id';
+
+				# If this node's mother is the 'graph' node, then it's a graph_id.
+
+				$stack = $self -> stack;
+				$type  = 'graph_id' if ($$stack[$#$stack] -> name eq 'graph');
 			}
 
 			$self -> log(debug => "|$lexeme| classified as a $type") if ($original_lexeme ne $lexeme);
@@ -937,13 +999,17 @@ sub _process
 		{
 			$self -> _process_prolog_token($event_name, $lexeme);
 		}
+		elsif ($event_name eq 'subgraph_id')
+		{
+			$self -> _add_daughter('subgraph_id', {type => $event_name, value => $lexeme});
+		}
 		elsif ($event_name eq 'subgraph_literal')
 		{
 			$self -> _add_daughter('literal', {type => $event_name, value => 'subgraph'});
 		}
 		elsif ($event_name eq 'undirected_edge')
 		{
-			$self -> _add_daughter('edge_id', {name => $event_name, value => $lexeme});
+			$self -> _add_daughter('edge_id', {type => $event_name, value => $lexeme});
 		}
 
 		# Step past separators.
@@ -1010,7 +1076,6 @@ sub _process_brace
 		push @$stack, $daughters[$#daughters];
 
 		$self -> stack($stack);
-		#$self -> _dump_stack('_process_brace() pushed { onto stack');
 	}
 	else
 	{
@@ -1083,7 +1148,7 @@ sub _process_html
 
 		if (defined $value)
 		{
-			$html = decode_result($$value);
+			$html = $self -> _decode_result($$value);
 		}
 		else
 		{
@@ -1212,9 +1277,7 @@ sub run
 	{
 		if (defined (my $value = $self -> _process) )
 		{
-			# At this stage, _post_process() does nothing.
-
-			#$self -> _post_process;
+			$self -> log(info => 'Parsed tree:');
 			$self -> log(info => join("\n", @{$self -> tree -> tree2string}) );
 		}
 		else
@@ -1262,7 +1325,6 @@ sub run
 			) if (! $self -> renderer);
 
 			$self -> renderer -> run;
-			$self -> log(info => "Rendered file: $output_file");
 		}
 	}
 	else
@@ -1718,6 +1780,87 @@ This allows g2m.pl to control the C<trace_terminals> setting passed to L<Marpa::
 
 =head1 Methods
 
+=head2 clean_before($s)
+
+Clean the given string before passing it to Marpa.
+
+=head2 clean_after($s)
+
+Clean the given string before storing it in the tree.
+
+=head2 decode_port_compass($name)
+
+Returns a 2-element array for the given DOT node name.
+
+=over 4
+
+=item o [0]: The node name without any port+compass suffix
+
+=item o [1]: The port+compass suffix (prefixed by ':'), or ''
+
+=back
+
+=head2 decode_node($node)
+
+Returns a hashref of the tree node's name and attributes.
+
+Key => Value pairs:
+
+=over 4
+
+=item o id => $node -> name
+
+This identifies the type of tree node. It has values like 'node_id', 'edge_id', 'literal', etc.
+These values come from the grammar.
+
+=item o name => $$attributes{value}
+
+This is the name of the tree node. The value comes from the input stream.
+
+But, if C<id> is 'node_id', then C<name> is the DOT node's name without any port+compass suffix.
+
+=item o port => The DOT node name's port+compass suffix (prefixed by ':'), or ''
+
+This value come from the grammar.
+
+=item o type => $$attributes{type}
+
+This has values like 'node_id', 'open_bracket', etc. In fact, these are the names of lexemes.
+These values come from the grammar.
+
+=item o uid  => $$attributes{uid}
+
+This is the unique uid of the tree node.
+
+=item o value  => $$attributes{value}
+
+This is usually a copy of the C<name> attribute. The value comes from the input stream.
+
+If the C<id> is 'node_id>' then this value will be the DOT node's name including any
+port+compass suffix.
+
+=back
+
+=head2 decode_tree($tree)
+
+Returns a hashref of the tree's digraph/graph and strict attributes. These are extracted from the
+prolog of the tree, which means $tree must be a whole tree, and not just a node within a whole
+tree.
+
+Key => Value pairs:
+
+=over 4
+
+=item o digraph => 'digraph' || 'graph'
+
+Default: 'digraph'.
+
+=item o strict  => 'strict' || '' (empty string)
+
+Default: ''.
+
+=back
+
 =head2 description([$graph])
 
 The [] indicate an optional parameter.
@@ -1730,6 +1873,12 @@ The value supplied by the 'description' option takes precedence over the value r
 See also L</input_file()>.
 
 'description' is a parameter to L</new()>. See L</Constructor and Initialization> for details.
+
+=head2 hashref2string($h)
+
+Convert the keys and values of $h to a string, including '{' and '}'.
+
+Defaults to '{}' if $h is not defined.
 
 =head2 input_file([$graph_file_name])
 
@@ -1787,6 +1936,12 @@ use or create an object of type L<Log::Handler>. See L<Log::Handler::Levels>.
 
 See L</Constructor and Initialization> for details on the parameters accepted by L</new()>.
 
+=head2 next_few_chars($s, $offset)
+
+Returns a substring of $s, starting at $offset, for use in progress messages.
+
+The default string length returned is 20 characters.
+
 =head2 output_file([$file_name])
 
 Here, the [] indicate an optional parameter.
@@ -1833,7 +1988,7 @@ Here and below, the word C<node> (usually) refers to nodes in this tree, not Gra
 
 The root node always looks like this when printed by Tree::DAG_Node's tree2string() method:
 
-	root. Attributes: {type => "root_literal", uid => "0", value => "root"}
+	root. Attributes: {node=>"root", port=>"", type=>"root_literal", uid=>"0", value=>"root"}
 
 Interpretation:
 
@@ -1848,6 +2003,14 @@ Here, C<root>.
 Key fields:
 
 =over 4
+
+=item o node
+
+The name of the DOT node without any port+compass suffix. Here C<root>.
+
+=item o port
+
+The port+compass suffix of the DOT node name, if any, else ''. Here the empty string.
 
 =item o type
 
@@ -1887,44 +2050,42 @@ Using C<-max notice>, which is the default, produces no output from C<g2m.pl>.
 
 This is the input:
 
-	STRICT digraph graph_10
+	STRICT DiGraph graph_10_01
 	{
-		edge ["color" = "green"];
-		node [shape=rpromoter]
-		terminator [label = "\nterminator" shape = terminator;];
+		node_10_01_1 [fillcolor = red, style = filled]
+		node_10_01_2 [fillcolor = green, style = filled]
 
-		rpromoter -> terminator [label = Transformer]
+		node_10_01_1 -> node_10_01_2 [arrowtail = dot, arrowhead = odot]
 	}
 
 And this is the output:
 
-	root. Attributes: {type => "root_literal", uid => "0", value => "root"}
-	   |--- prolog. Attributes: {type => "prolog_literal", uid => "1", value => "prolog"}
-	   |   |--- literal. Attributes: {type => "strict_literal", uid => "3", value => "strict"}
-	   |   |--- literal. Attributes: {type => "digraph_literal", uid => "4", value => "digraph"}
-	   |--- graph. Attributes: {type => "graph_literal", uid => "2", value => "graph"}
-	       |--- node_id. Attributes: {type => "node_id", uid => "5", value => "graph_10"}
-	       |--- literal. Attributes: {type => "open_brace", uid => "6", value => "{"}
-	       |   |--- class. Attributes: {type => "class", uid => "7", value => "edge"}
-	       |   |   |--- literal. Attributes: {type => "open_bracket", uid => "8", value => "["}
-	       |   |   |--- attribute. Attributes: {type => "color", uid => "9", value => "green"}
-	       |   |   |--- literal. Attributes: {type => "close_bracket", uid => "10", value => "]"}
-	       |   |--- class. Attributes: {type => "class", uid => "11", value => "node"}
-	       |   |   |--- literal. Attributes: {type => "open_bracket", uid => "12", value => "["}
-	       |   |   |--- attribute. Attributes: {type => "shape", uid => "13", value => "rpromoter"}
-	       |   |   |--- literal. Attributes: {type => "close_bracket", uid => "14", value => "]"}
-	       |   |--- node_id. Attributes: {type => "node_id", uid => "15", value => "terminator"}
-	       |   |   |--- literal. Attributes: {type => "open_bracket", uid => "16", value => "["}
-	       |   |   |--- attribute. Attributes: {type => "label", uid => "17", value => "\nterminator"}
-	       |   |   |--- attribute. Attributes: {type => "shape", uid => "18", value => "terminator"}
-	       |   |   |--- literal. Attributes: {type => "close_bracket", uid => "19", value => "]"}
-	       |   |--- node_id. Attributes: {type => "node_id", uid => "20", value => "rpromoter"}
-	       |   |--- edge_id. Attributes: {name => "directed_edge", uid => "21", value => "->"}
-	       |   |--- node_id. Attributes: {type => "node_id", uid => "22", value => "terminator"}
-	       |       |--- literal. Attributes: {type => "open_bracket", uid => "23", value => "["}
-	       |       |--- attribute. Attributes: {type => "label", uid => "24", value => "Transformer"}
-	       |       |--- literal. Attributes: {type => "close_bracket", uid => "25", value => "]"}
-	       |--- literal. Attributes: {type => "close_brace", uid => "26", value => "}"}
+	Parsed tree:
+	root. Attributes: {name => "root", port => "", type => "root_literal", uid => "0", value => "root"}
+	   |--- prolog. Attributes: {name => "prolog", port => "", type => "prolog_literal", uid => "1", value => "prolog"}
+	   |   |--- literal. Attributes: {name => "strict", port => "", type => "strict_literal", uid => "3", value => "strict"}
+	   |   |--- literal. Attributes: {name => "digraph", port => "", type => "digraph_literal", uid => "4", value => "digraph"}
+	   |--- graph. Attributes: {name => "graph", port => "", type => "graph_literal", uid => "2", value => "graph"}
+	       |--- graph_id. Attributes: {name => "graph_10_01", port => "", type => "graph_id", uid => "5", value => "graph_10_01"}
+	       |--- literal. Attributes: {name => "{", port => "", type => "open_brace", uid => "6", value => "{"}
+	       |   |--- node_id. Attributes: {name => "node_10_01_1", port => "", type => "node_id", uid => "7", value => "node_10_01_1"}
+	       |   |   |--- literal. Attributes: {name => "[", port => "", type => "open_bracket", uid => "8", value => "["}
+	       |   |   |--- attribute. Attributes: {name => "red", port => "", type => "fillcolor", uid => "9", value => "red"}
+	       |   |   |--- attribute. Attributes: {name => "filled", port => "", type => "style", uid => "10", value => "filled"}
+	       |   |   |--- literal. Attributes: {name => "]", port => "", type => "close_bracket", uid => "11", value => "]"}
+	       |   |--- node_id. Attributes: {name => "node_10_01_2", port => "", type => "node_id", uid => "12", value => "node_10_01_2"}
+	       |   |   |--- literal. Attributes: {name => "[", port => "", type => "open_bracket", uid => "13", value => "["}
+	       |   |   |--- attribute. Attributes: {name => "green", port => "", type => "fillcolor", uid => "14", value => "green"}
+	       |   |   |--- attribute. Attributes: {name => "filled", port => "", type => "style", uid => "15", value => "filled"}
+	       |   |   |--- literal. Attributes: {name => "]", port => "", type => "close_bracket", uid => "16", value => "]"}
+	       |   |--- node_id. Attributes: {name => "node_10_01_1", port => "", type => "node_id", uid => "17", value => "node_10_01_1"}
+	       |   |--- edge_id. Attributes: {name => "->", port => "", type => "directed_edge", uid => "18", value => "->"}
+	       |   |--- node_id. Attributes: {name => "node_10_01_2", port => "", type => "node_id", uid => "19", value => "node_10_01_2"}
+	       |       |--- literal. Attributes: {name => "[", port => "", type => "open_bracket", uid => "20", value => "["}
+	       |       |--- attribute. Attributes: {name => "dot", port => "", type => "arrowtail", uid => "21", value => "dot"}
+	       |       |--- attribute. Attributes: {name => "odot", port => "", type => "arrowhead", uid => "22", value => "odot"}
+	       |       |--- literal. Attributes: {name => "]", port => "", type => "close_bracket", uid => "23", value => "]"}
+	       |--- literal. Attributes: {name => "}", port => "", type => "close_brace", uid => "24", value => "}"}
 	Parse result:  0 (0 is success)
 
 You can see from this output that words special to Graphviz (e.g. STRICT) are accepted no matter
@@ -2051,7 +2212,16 @@ attributes for the edge.
 
 =item o graph
 
-There is only ever 1 node called C<graph>.
+There is only ever 1 node called C<graph>. This tree node is always present.
+
+=item o graph_id
+
+There is only ever 1 node called C<graph_id>.
+
+If present, it's mother must be the tree node called C<graph>, in which case it will be the first
+daughter of C<graph>.
+
+But, it will be absent if the graph is unnamed, as in strict digraph /* no name */ {...}.
 
 =item o literal
 
@@ -2118,19 +2288,19 @@ This is a case where tree compression could be done, but isn't done yet.
 
 =item o prolog
 
-There is only ever 1 node called C<prolog>.
+There is only ever 1 node called C<prolog>. This tree node is always present.
 
 =item o root
 
-There is only ever 1 node called C<root>.
+There is only ever 1 node called C<root>. This tree node is always present.
 
 =back
 
 =head2 How are nodes, ports and compass points represented in the (above) tree?
 
-Input contains this fragment of data/16.gv:
+Input contains this fragment of data/17.02.gv:
 
-	node_16_1:p11 -> node_16_2:p22:s
+	node_17_02_1:p11 -> node_17_02_2:p22:s
 	[
 		arrowhead = "odiamond";
 		arrowtail = "odot",
@@ -2140,11 +2310,14 @@ Input contains this fragment of data/16.gv:
 
 The output log contains:
 
-	|   |--- node_id. Attributes: {type => "node_id", uid => "29", value => "node_16_1:p11"}
-	|   |--- edge_id. Attributes: {name => "directed_edge", uid => "30", value => "->"}
-	|   |--- node_id. Attributes: {type => "node_id", uid => "31", value => "node_16_2:p22:s"}
+	|   |--- node_id. Attributes: {node => "node_17_02_1", port => ":p11", type => "node_id", uid => "29", value => "node_17_02_1:p11"}
+	|   |--- edge_id. Attributes: {name => "directed_edge", node => "->", port => "", uid => "30", value => "->"}
+	|   |--- node_id. Attributes: {node => "node_17_02_2", port => ":p22:s", type => "node_id", uid => "31", value => "node_17_02_2:p22:s"}
 
-You can see the ports and compass points have been incorporated into the C<value> attribute.
+You can see the ports and compass points have been incorporated into the C<value> attribute, and
+that is value comes from concatenating the values of the C<node> and C<port> attributes.
+
+See L</decode_port_compass($name)> and L</decode_node($node)>.
 
 =head2 How are HTML-like labels handled
 
@@ -2244,10 +2417,15 @@ tests. Combined, they take almost 2m 30s to run.
 =head1 See Also
 
 L<Marpa::Demo::StringParser>. The significance of this module is that during the re-write of
-GraphViz2::Marpa, the string-handling code was perfected in L<Marpa::Demo::StringParser>.
+GraphViz2::Marpa V 1 => 2, the string-handling code was built-up step-by-step in
+L<Marpa::Demo::StringParser>.
 
 Later, that code was improved within this module, and will be back-ported into
-Marpa::Demo::StringParser.
+Marpa::Demo::StringParser. In particular the technique used in _process_html() really should be
+back-ported.
+
+Also, see L<GraphViz2::Marpa::PathUtils> for 2 ways the tree built by this module can be processed
+to provide analysis of the structure of the graph.
 
 =head1 Machine-Readable Change Log
 
